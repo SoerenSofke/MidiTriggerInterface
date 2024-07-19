@@ -285,6 +285,10 @@ static void sendNextNote()
 
 // core1's setup
 void setup1() {
+    // Sets pin PIN_5V_EN (Pin 18) to HIGH to enable USB power
+    pinMode(PIN_5V_EN, OUTPUT); 
+    digitalWrite(PIN_5V_EN, HIGH);
+
     while(!Serial);   // wait for native usb
     Serial.println("Core1 setup to run TinyUSB host with pio-usb\r\n");
 
