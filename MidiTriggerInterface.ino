@@ -33,6 +33,7 @@
  * This program works with a single USB MIDI device connected via a USB hub, but it
  * does not handle multiple USB MIDI devices connected at the same time.
  */
+
 #if defined(USE_TINYUSB_HOST) || !defined(USE_TINYUSB)
 #error "Please use the Menu to select Tools->USB Stack: Adafruit TinyUSB"
 #endif
@@ -256,31 +257,6 @@ static void blinkLED(void)
     digitalWrite(LED_BUILTIN, ledState ? HIGH:LOW); 
 }
 
-static void sendNextNote()
-{
-    static uint8_t firstNote = 0x5b; // Mackie Control rewind
-    static uint8_t lastNote = 0x5f; // Mackie Control stop
-    static uint8_t offNote = lastNote;
-    static uint8_t onNote = firstNote;
-    // toggle NOTE On, Note Off for the Mackie Control channels 1-8 REC LED
-    const uint32_t intervalMs = 1000;
-    static uint32_t startMs = 0;
-    auto intf = usbhMIDI.getInterfaceFromDeviceAndCable(midiDevAddr, 0);
-    if (intf == nullptr)
-        return; // not connected
-    
-    if ( millis() - startMs < intervalMs)
-        return; // not enough time
-    startMs += intervalMs;
-    intf->sendNoteOn(offNote++, 0, 1);
-    intf->sendNoteOn(onNote++, 0x7f, 1);
-    
-    if (offNote > lastNote)
-        offNote = firstNote;
-    if (onNote > lastNote)
-        onNote = firstNote;
-}
-
 /* APPLICATION STARTS HERE */
 
 // core1's setup
@@ -339,11 +315,6 @@ void setup()
 void loop() {    
     // Handle any incoming data; triggers MIDI IN callbacks
     usbhMIDI.readAll();
-    // Do other processing that might generate pending MIDI OUT data
-    sendNextNote();
-
-    // Tell the USB Host to send as much pending MIDI OUT data as possible
-    usbhMIDI.writeFlushAll();
 
     // Do other non-USB host processing
     blinkLED();
