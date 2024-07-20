@@ -57,6 +57,10 @@ static bool core1_booting = true;
 #define NUM_NEOPIXEL 1
 NeoPixelConnect p(PIN_NEOPIXEL, NUM_NEOPIXEL, pio0, 1);
 
+#include <MIDI.h>
+Adafruit_USBD_MIDI usb_midi;
+MIDI_CREATE_INSTANCE(Adafruit_USBD_MIDI, usb_midi, MIDIusb);
+
 /* MIDI IN MESSAGE REPORTING */
 static void onMidiError(int8_t errCode)
 {
@@ -67,11 +71,14 @@ static void onMidiError(int8_t errCode)
 
 static void onNoteOff(Channel channel, byte note, byte velocity)
 {
+    MIDIusb.sendNoteOff(note, velocity, channel);
     Serial.printf("C%u: Note off#%u v=%u\r\n", channel, note, velocity);
 }
 
 static void onNoteOn(Channel channel, byte note, byte velocity)
 {
+    MIDIusb.sendNoteOn(note, velocity, channel);
+    
     if (velocity==0)
       p.neoPixelFill(0, 32, 0, true);
     else
@@ -198,11 +205,15 @@ void loop1()
 
 void setup()
 {
+    MIDIusb.begin();
+    MIDIusb.turnThruOff();   // turn off echo
+
     Serial.begin(115200);
 
     while(!Serial);   // wait for serial port
     pinMode(LED_BUILTIN, OUTPUT);
     Serial.println("EZ USB MIDI HOST PIO Example for Arduino\r\n");
+
     core0_booting = false;
     while(core1_booting) ;
 }
