@@ -80,127 +80,24 @@ static void onNoteOn(Channel channel, byte note, byte velocity)
     Serial.printf("C%u: Note on#%u v=%u\r\n", channel, note, velocity);
 }
 
-static void onPolyphonicAftertouch(Channel channel, byte note, byte amount)
-{
-    Serial.printf("C%u: PAT#%u=%u\r\n", channel, note, amount);
-}
-
-static void onControlChange(Channel channel, byte controller, byte value)
-{
-    Serial.printf("C%u: CC#%u=%u\r\n", channel, controller, value);
-}
-
-static void onProgramChange(Channel channel, byte program)
-{
-    Serial.printf("C%u: Prog=%u\r\n", channel, program);
-}
-
-static void onAftertouch(Channel channel, byte value)
-{
-    Serial.printf("C%u: AT=%u\r\n", channel, value);
-}
-
-static void onPitchBend(Channel channel, int value)
-{
-    Serial.printf("C%u: PB=%d\r\n", channel, value);
-}
-
-static void onSysEx(byte * array, unsigned size)
-{
-    Serial.printf("SysEx:\r\n");
-    unsigned multipleOf8 = size/8;
-    unsigned remOf8 = size % 8;
-    for (unsigned idx=0; idx < multipleOf8; idx++) {
-        for (unsigned jdx = 0; jdx < 8; jdx++) {
-            Serial.printf("%02x ", *array++);
-        }
-        Serial.printf("\r\n");
-    }
-    for (unsigned idx = 0; idx < remOf8; idx++) {
-        Serial.printf("%02x ", *array++);
-    }
-    Serial.printf("\r\n");
-}
-
-static void onSMPTEqf(byte data)
-{
-    uint8_t type = (data >> 4) & 0xF;
-    data &= 0xF;    
-    static const char* fps[4] = {"24", "25", "30DF", "30ND"};
-    switch (type) {
-        case 0: Serial.printf("SMPTE FRM LS %u \r\n", data); break;
-        case 1: Serial.printf("SMPTE FRM MS %u \r\n", data); break;
-        case 2: Serial.printf("SMPTE SEC LS %u \r\n", data); break;
-        case 3: Serial.printf("SMPTE SEC MS %u \r\n", data); break;
-        case 4: Serial.printf("SMPTE MIN LS %u \r\n", data); break;
-        case 5: Serial.printf("SMPTE MIN MS %u \r\n", data); break;
-        case 6: Serial.printf("SMPTE HR LS %u \r\n", data); break;
-        case 7:
-            Serial.printf("SMPTE HR MS %u FPS:%s\r\n", data & 0x1, fps[(data >> 1) & 3]);
-            break;
-        default:
-          Serial.printf("invalid SMPTE data byte %u\r\n", data);
-          break;
-    }
-}
-
-static void onSongPosition(unsigned beats)
-{
-    Serial.printf("SongP=%u\r\n", beats);
-}
-
-static void onSongSelect(byte songnumber)
-{
-    Serial.printf("SongS#%u\r\n", songnumber);
-}
-
-static void onTuneRequest()
-{
-    Serial.printf("Tune\r\n");
-}
-
-static void onMidiClock()
-{
-    Serial.printf("Clock\r\n");
-}
-
-static void onMidiStart()
-{
-    Serial.printf("Start\r\n");
-}
-
-static void onMidiContinue()
-{
-    Serial.printf("Cont\r\n");
-}
-
-static void onMidiStop()
-{
-    Serial.printf("Stop\r\n");
-}
-
-static void onActiveSense()
-{
-    Serial.printf("ASen\r\n");
-}
-
-static void onSystemReset()
-{
-    Serial.printf("SysRst\r\n");
-}
-
-static void onMidiTick()
-{
-    Serial.printf("Tick\r\n");
-}
-
-static void onMidiInWriteFail(uint8_t devAddr, uint8_t cable, bool fifoOverflow)
-{
-    if (fifoOverflow)
-        Serial.printf("Dev %u cable %u: MIDI IN FIFO overflow\r\n", devAddr, cable);
-    else
-        Serial.printf("Dev %u cable %u: MIDI IN FIFO error\r\n", devAddr, cable);
-}
+static void onPolyphonicAftertouch(Channel channel, byte note, byte amount){}
+static void onControlChange(Channel channel, byte controller, byte value){}
+static void onProgramChange(Channel channel, byte program){}
+static void onAftertouch(Channel channel, byte value){}
+static void onPitchBend(Channel channel, int value){}
+static void onSysEx(byte * array, unsigned size){}
+static void onSMPTEqf(byte data){}
+static void onSongPosition(unsigned beats){}
+static void onSongSelect(byte songnumber){}
+static void onTuneRequest(){}
+static void onMidiClock(){}
+static void onMidiStart(){}
+static void onMidiContinue(){}
+static void onMidiStop(){}
+static void onActiveSense(){}
+static void onSystemReset(){}
+static void onMidiTick(){}
+static void onMidiInWriteFail(uint8_t devAddr, uint8_t cable, bool fifoOverflow){}
 
 static void registerMidiInCallbacks()
 {
@@ -250,23 +147,6 @@ static void onMIDIdisconnect(uint8_t devAddr)
     p.neoPixelFill(0, 0, 128, true);
     Serial.printf("MIDI device at address %u unplugged\r\n", devAddr);
     midiDevAddr = 0;
-}
-
-
-/* MAIN LOOP FUNCTIONS */
-
-static void blinkLED(void)
-{
-    const uint32_t intervalMs = 1000;
-    static uint32_t startMs = 0;
-
-    static bool ledState = false;
-    if ( millis() - startMs < intervalMs)
-        return;
-    startMs += intervalMs;
-
-    ledState = !ledState;
-    digitalWrite(LED_BUILTIN, ledState ? HIGH:LOW); 
 }
 
 /* APPLICATION STARTS HERE */
@@ -328,11 +208,7 @@ void setup()
 }
 
 void loop() {    
-    // Handle any incoming data; triggers MIDI IN callbacks
     usbhMIDI.readAll();
-
-    // Do other non-USB host processing
-    blinkLED();
 }
 
 
