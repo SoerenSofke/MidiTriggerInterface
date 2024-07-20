@@ -53,6 +53,10 @@ static uint8_t midiDevAddr = 0;
 static bool core0_booting = true;
 static bool core1_booting = true;
 
+#include <NeoPixelConnect.h>
+#define NUM_NEOPIXEL 1
+NeoPixelConnect p(PIN_NEOPIXEL, NUM_NEOPIXEL, pio0, 1);
+
 /* MIDI IN MESSAGE REPORTING */
 static void onMidiError(int8_t errCode)
 {
@@ -68,6 +72,11 @@ static void onNoteOff(Channel channel, byte note, byte velocity)
 
 static void onNoteOn(Channel channel, byte note, byte velocity)
 {
+    if (velocity==0)
+      p.neoPixelFill(0, 32, 0, true);
+    else
+      p.neoPixelFill(255, 0, 0, true);
+
     Serial.printf("C%u: Note on#%u v=%u\r\n", channel, note, velocity);
 }
 
@@ -229,13 +238,16 @@ static void registerMidiInCallbacks()
 /* CONNECTION MANAGEMENT */
 static void onMIDIconnect(uint8_t devAddr, uint8_t nInCables, uint8_t nOutCables)
 {
+    p.neoPixelFill(0, 32, 0, true);
     Serial.printf("MIDI device at address %u has %u IN cables and %u OUT cables\r\n", devAddr, nInCables, nOutCables);
     midiDevAddr = devAddr;
+    
     registerMidiInCallbacks();
 }
 
 static void onMIDIdisconnect(uint8_t devAddr)
 {
+    p.neoPixelFill(0, 0, 128, true);
     Serial.printf("MIDI device at address %u unplugged\r\n", devAddr);
     midiDevAddr = 0;
 }
@@ -261,6 +273,9 @@ static void blinkLED(void)
 
 // core1's setup
 void setup1() {
+    pinMode(NEOPIXEL_POWER, OUTPUT); 
+    digitalWrite(NEOPIXEL_POWER, HIGH);
+    
     // Sets pin PIN_5V_EN (Pin 18) to HIGH to enable USB power
     pinMode(PIN_5V_EN, OUTPUT); 
     digitalWrite(PIN_5V_EN, HIGH);
