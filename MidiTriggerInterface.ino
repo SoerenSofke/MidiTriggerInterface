@@ -34,6 +34,8 @@
  * does not handle multiple USB MIDI devices connected at the same time.
  */
 
+ static bool printEnabled = false;
+
 #if defined(USE_TINYUSB_HOST) || !defined(USE_TINYUSB)
 #error "Please use the Menu to select Tools->USB Stack: Adafruit TinyUSB"
 #endif
@@ -62,17 +64,19 @@ Adafruit_USBD_MIDI usb_midi;
 MIDI_CREATE_INSTANCE(Adafruit_USBD_MIDI, usb_midi, MIDIusb);
 
 /* MIDI IN MESSAGE REPORTING */
-static void onMidiError(int8_t errCode)
-{
+static void onMidiError(int8_t errCode) {
+  if (printEnabled) { 
     Serial.printf("MIDI Errors: %s %s %s\r\n", (errCode & (1UL << ErrorParse)) ? "Parse":"",
         (errCode & (1UL << ErrorActiveSensingTimeout)) ? "Active Sensing Timeout" : "",
         (errCode & (1UL << WarningSplitSysEx)) ? "Split SysEx":"");
+  }
 }
 
-static void onNoteOff(Channel channel, byte note, byte velocity)
-{
+static void onNoteOff(Channel channel, byte note, byte velocity) {
     MIDIusb.sendNoteOff(note, velocity, channel);
-    Serial.printf("C%u: Note off#%u v=%u\r\n", channel, note, velocity);
+    if (printEnabled) { 
+      Serial.printf("C%u: Note off#%u v=%u\r\n", channel, note, velocity);
+    }
 }
 
 static void onNoteOn(Channel channel, byte note, byte velocity)
@@ -84,7 +88,9 @@ static void onNoteOn(Channel channel, byte note, byte velocity)
     else
       p.neoPixelFill(255, 0, 0, true);
 
-    Serial.printf("C%u: Note on#%u v=%u\r\n", channel, note, velocity);
+    if (printEnabled) { 
+      Serial.printf("C%u: Note on#%u v=%u\r\n", channel, note, velocity);
+    }
 }
 
 static void onPolyphonicAftertouch(Channel channel, byte note, byte amount){}
@@ -143,7 +149,11 @@ static void registerMidiInCallbacks()
 static void onMIDIconnect(uint8_t devAddr, uint8_t nInCables, uint8_t nOutCables)
 {
     p.neoPixelFill(0, 32, 0, true);
-    Serial.printf("MIDI device at address %u has %u IN cables and %u OUT cables\r\n", devAddr, nInCables, nOutCables);
+    
+    if (printEnabled) { 
+      Serial.printf("MIDI device at address %u has %u IN cables and %u OUT cables\r\n", devAddr, nInCables, nOutCables);
+    }
+    
     midiDevAddr = devAddr;
     
     registerMidiInCallbacks();
@@ -152,8 +162,12 @@ static void onMIDIconnect(uint8_t devAddr, uint8_t nInCables, uint8_t nOutCables
 static void onMIDIdisconnect(uint8_t devAddr)
 {
     p.neoPixelFill(0, 0, 128, true);
-    Serial.printf("MIDI device at address %u unplugged\r\n", devAddr);
     midiDevAddr = 0;
+    
+    if (printEnabled) { 
+      Serial.printf("MIDI device at address %u unplugged\r\n", devAddr);
+    }
+    
 }
 
 /* APPLICATION STARTS HERE */
@@ -168,14 +182,18 @@ void setup1() {
     digitalWrite(PIN_5V_EN, HIGH);
 
     while(!Serial);   // wait for native usb
-    Serial.println("Core1 setup to run TinyUSB host with pio-usb\r\n");
+    if (printEnabled) { 
+      Serial.println("Core1 setup to run TinyUSB host with pio-usb\r\n");
+    }
 
     // Check for CPU frequency, must be multiple of 120Mhz for bit-banging USB
     uint32_t cpu_hz = clock_get_hz(clk_sys);
     if ( cpu_hz != 120000000UL && cpu_hz != 240000000UL ) {
         delay(2000);   // wait for native usb
-        Serial.printf("Error: CPU Clock = %u, PIO USB require CPU clock must be multiple of 120 Mhz\r\n", cpu_hz);
-        Serial.printf("Change your CPU Clock to either 120 or 240 Mhz in Menu->CPU Speed \r\n", cpu_hz);
+        if (printEnabled) { 
+          Serial.printf("Error: CPU Clock = %u, PIO USB require CPU clock must be multiple of 120 Mhz\r\n", cpu_hz);
+          Serial.printf("Change your CPU Clock to either 120 or 240 Mhz in Menu->CPU Speed \r\n", cpu_hz);
+        }
         while(1) delay(1);
     }
 
@@ -212,7 +230,10 @@ void setup()
 
     while(!Serial);   // wait for serial port
     pinMode(LED_BUILTIN, OUTPUT);
-    Serial.println("EZ USB MIDI HOST PIO Example for Arduino\r\n");
+    
+    if (printEnabled) { 
+      Serial.println("EZ USB MIDI HOST PIO Example for Arduino\r\n");
+    }
 
     core0_booting = false;
     while(core1_booting) ;
