@@ -34,7 +34,7 @@
  * does not handle multiple USB MIDI devices connected at the same time.
  */
 
- static bool printEnabled = false;
+ static bool printEnabled = true;
 
 #if defined(USE_TINYUSB_HOST) || !defined(USE_TINYUSB)
 #error "Please use the Menu to select Tools->USB Stack: Adafruit TinyUSB"
@@ -170,10 +170,10 @@ static void onMIDIdisconnect(uint8_t devAddr)
     
 }
 
-/* APPLICATION STARTS HERE */
-
 // core1's setup
 void setup1() {
+    pinMode(LED_BUILTIN, OUTPUT);
+
     pinMode(NEOPIXEL_POWER, OUTPUT); 
     digitalWrite(NEOPIXEL_POWER, HIGH);
     
@@ -181,8 +181,9 @@ void setup1() {
     pinMode(PIN_5V_EN, OUTPUT); 
     digitalWrite(PIN_5V_EN, HIGH);
 
-    while(!Serial);   // wait for native usb
+    while(!Serial);   // wait for native usb    
     if (printEnabled) { 
+      Serial.println("EZ USB MIDI HOST PIO Example for Arduino\r\n");
       Serial.println("Core1 setup to run TinyUSB host with pio-usb\r\n");
     }
 
@@ -210,7 +211,8 @@ void setup1() {
     // run host stack on controller (rhport) 1
     // Note: For rp2040 pico-pio-usb, calling USBHost.begin() on core1 will have most of the
     // host bit-banging processing work done in core1 to free up core0 for other work
-    usbhMIDI.begin(&USBHost, 1, onMIDIconnect, onMIDIdisconnect);
+    usbhMIDI.begin(&USBHost, 1, onMIDIconnect, onMIDIdisconnect);    
+
     core1_booting = false;
     while(core0_booting) ;
 }
@@ -219,28 +221,18 @@ void setup1() {
 void loop1()
 {
     USBHost.task();
-}
-
-void setup()
-{
-    MIDIusb.begin();
-    MIDIusb.turnThruOff();   // turn off echo
-
-    Serial.begin(115200);
-
-    while(!Serial);   // wait for serial port
-    pinMode(LED_BUILTIN, OUTPUT);
-    
-    if (printEnabled) { 
-      Serial.println("EZ USB MIDI HOST PIO Example for Arduino\r\n");
-    }
-
-    core0_booting = false;
-    while(core1_booting) ;
-}
-
-void loop() {    
     usbhMIDI.readAll();
 }
 
+void setup()
+{    
+    MIDIusb.begin();
+    MIDIusb.turnThruOff();   // turn off echo
 
+    core0_booting = false;
+    while(core1_booting);
+}
+
+void loop() {    
+    
+}
