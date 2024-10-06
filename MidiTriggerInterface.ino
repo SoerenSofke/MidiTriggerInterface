@@ -34,7 +34,7 @@
  * does not handle multiple USB MIDI devices connected at the same time.
  */
 
-static bool printEnabled = true;
+static bool printEnabled = false;
 
 #if defined(USE_TINYUSB_HOST) || !defined(USE_TINYUSB)
 #error "Please use the Menu to select Tools->USB Stack: Adafruit TinyUSB"
@@ -51,7 +51,6 @@ USING_NAMESPACE_EZ_USB_MIDI_HOST
 RPPICOMIDI_EZ_USB_MIDI_HOST_INSTANCE(usbhMIDI, MidiHostSettingsDefault)
 
 static uint8_t midiDevAddr = 0;
-static uint8_t keysPressed = 0;
 
 static bool core0_booting = true;
 static bool core1_booting = true;
@@ -74,7 +73,6 @@ static void onNoteOn(Channel channel, byte note, byte velocity) {
 
   MIDIusb.sendNoteOn(note, velocity, channel);
   p.neoPixelFill(255, 0, 0, true);
-  keysPressed += 1;
 
   if (printEnabled) {
     Serial.printf("C%u: Note on#%u v=%u\r\n", channel, note, velocity);
@@ -83,9 +81,7 @@ static void onNoteOn(Channel channel, byte note, byte velocity) {
 
 static void onNoteOff(Channel channel, byte note, byte velocity) {
   MIDIusb.sendNoteOff(note, velocity, channel);
-  keysPressed -= 1;
-  if (keysPressed == 0)
-    p.neoPixelFill(0, 32, 0, true);
+  p.neoPixelFill(0, 32, 0, true);
 
   if (printEnabled) {
     Serial.printf("C%u: Note off#%u v=%u\r\n", channel, note, velocity);
@@ -166,6 +162,7 @@ static void onMIDIconnect(uint8_t devAddr, uint8_t nInCables, uint8_t nOutCables
 
 static void onMIDIdisconnect(uint8_t devAddr) {
   p.neoPixelFill(0, 0, 128, true);
+
   midiDevAddr = 0;
 
   if (printEnabled) {
@@ -218,7 +215,8 @@ void setup1() {
   usbhMIDI.begin(&USBHost, 1, onMIDIconnect, onMIDIdisconnect);
 
   core1_booting = false;
-  while (core0_booting);
+  while (core0_booting)
+    ;
 }
 
 // core1's loop
@@ -232,7 +230,8 @@ void setup() {
   MIDIusb.turnThruOff();  // turn off echo
 
   core0_booting = false;
-  while (core1_booting);
+  while (core1_booting)
+    ;
 }
 
 void loop() {
