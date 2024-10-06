@@ -64,33 +64,37 @@ Adafruit_USBD_MIDI usb_midi;
 MIDI_CREATE_INSTANCE(Adafruit_USBD_MIDI, usb_midi, MIDIusb);
 
 /* MIDI IN MESSAGE REPORTING */
+static void onNoteOn(Channel channel, byte note, byte velocity)
+{      
+    // Velocity 0 equals note off
+    if (velocity==0){
+      onNoteOff(channel, note, velocity);
+      return;
+    }
+      
+    MIDIusb.sendNoteOn(note, velocity, channel);
+    p.neoPixelFill(255, 0, 0, true);
+
+    if (printEnabled) { 
+      Serial.printf("C%u: Note on#%u v=%u\r\n", channel, note, velocity);
+    }
+}
+
+static void onNoteOff(Channel channel, byte note, byte velocity) {
+    MIDIusb.sendNoteOff(note, velocity, channel);
+    p.neoPixelFill(0, 32, 0, true);
+
+    if (printEnabled) { 
+      Serial.printf("C%u: Note off#%u v=%u\r\n", channel, note, velocity);
+    }
+}
+
 static void onMidiError(int8_t errCode) {
   if (printEnabled) { 
     Serial.printf("MIDI Errors: %s %s %s\r\n", (errCode & (1UL << ErrorParse)) ? "Parse":"",
         (errCode & (1UL << ErrorActiveSensingTimeout)) ? "Active Sensing Timeout" : "",
         (errCode & (1UL << WarningSplitSysEx)) ? "Split SysEx":"");
   }
-}
-
-static void onNoteOff(Channel channel, byte note, byte velocity) {
-    MIDIusb.sendNoteOff(note, velocity, channel);
-    if (printEnabled) { 
-      Serial.printf("C%u: Note off#%u v=%u\r\n", channel, note, velocity);
-    }
-}
-
-static void onNoteOn(Channel channel, byte note, byte velocity)
-{
-    MIDIusb.sendNoteOn(note, velocity, channel);
-    
-    if (velocity==0)
-      p.neoPixelFill(0, 32, 0, true);
-    else
-      p.neoPixelFill(255, 0, 0, true);
-
-    if (printEnabled) { 
-      Serial.printf("C%u: Note on#%u v=%u\r\n", channel, note, velocity);
-    }
 }
 
 static void onPolyphonicAftertouch(Channel channel, byte note, byte amount){}
