@@ -34,7 +34,7 @@
  * does not handle multiple USB MIDI devices connected at the same time.
  */
 
-static bool printEnabled = false;
+static bool printEnabled = true;
 
 #if defined(USE_TINYUSB_HOST) || !defined(USE_TINYUSB)
 #error "Please use the Menu to select Tools->USB Stack: Adafruit TinyUSB"
@@ -62,6 +62,9 @@ NeoPixelConnect p(PIN_NEOPIXEL, NUM_NEOPIXEL, pio0, 1);
 #include <MIDI.h>
 Adafruit_USBD_MIDI usb_midi;
 MIDI_CREATE_INSTANCE(Adafruit_USBD_MIDI, usb_midi, MIDIusb);
+
+#include <Adafruit_ADS1X15.h>
+Adafruit_ADS1015 ads;
 
 /* MIDI IN MESSAGE REPORTING */
 static void onNoteOn(Channel channel, byte note, byte velocity) {
@@ -228,6 +231,19 @@ void loop1() {
 void setup() {
   MIDIusb.begin();
   MIDIusb.turnThruOff();  // turn off echo
+
+  while (!Serial)
+    ;  // wait for native usb
+  
+  if (ads.begin(0x48, &Wire)) {
+    if (printEnabled) {
+      Serial.println("ADC initialization SUCCESSFUL\r\n");
+    }
+  } else {
+    if (printEnabled) {
+      Serial.println("ADC initialization FAILED\r\n");
+    }
+  }
 
   core0_booting = false;
   while (core1_booting)
