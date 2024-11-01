@@ -239,6 +239,9 @@ void setup() {
     if (printEnabled) {
       Serial.println("ADC initialization SUCCESSFUL\r\n");
     }
+    // Start continuous conversions.
+    ads.startADCReading(ADS1X15_REG_CONFIG_MUX_DIFF_0_1, /*continuous=*/false);
+
   } else {
     if (printEnabled) {
       Serial.println("ADC initialization FAILED\r\n");
@@ -251,4 +254,21 @@ void setup() {
 }
 
 void loop() {
+  // If we don't have new data, skip this iteration.
+  if (!ads.conversionComplete()) {
+    return;
+  }
+
+  int16_t results = ads.getLastConversionResults();
+
+  // Start another conversion.
+  ads.startADCReading(ADS1X15_REG_CONFIG_MUX_DIFF_0_1, /*continuous=*/false);
+
+  Serial.print("Differential: "); 
+  Serial.print(results); 
+  Serial.print("("); 
+  Serial.print(ads.computeVolts(results)); 
+  Serial.println("V)");
+  
+  delay(1000);
 }
