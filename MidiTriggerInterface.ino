@@ -66,6 +66,14 @@ MIDI_CREATE_INSTANCE(Adafruit_USBD_MIDI, usb_midi, MIDIusb);
 #include <Adafruit_ADS1X15.h>
 Adafruit_ADS1015 ads;
 
+// Pin connected to the ALERT/RDY signal for new sample notification.
+constexpr int READY_PIN = 28;
+
+volatile bool new_data = false;
+void NewDataReadyISR() {
+  new_data = true;
+}
+
 /* MIDI IN MESSAGE REPORTING */
 static void onNoteOn(Channel channel, byte note, byte velocity) {
   // Velocity 0 equals note off
@@ -238,15 +246,16 @@ void setup() {
   if (ads.begin(0x48, &Wire)) {
     if (printEnabled) {
       Serial.println("ADC initialization SUCCESSFUL\r\n");
-    }
-    // Start continuous conversions.
-    ads.startADCReading(ADS1X15_REG_CONFIG_MUX_DIFF_0_1, /*continuous=*/false);
-
+    }    
   } else {
     if (printEnabled) {
       Serial.println("ADC initialization FAILED\r\n");
     }
   }
+
+  pinMode(READY_PIN, INPUT);    
+  attachInterrupt(digitalPinToInterrupt(READY_PIN), NewDataReadyISR, FALLING);
+  ads.startADCReading(ADS1X15_REG_CONFIG_MUX_DIFF_0_1, /*continuous=*/true);
 
   core0_booting = false;
   while (core1_booting)
@@ -254,15 +263,12 @@ void setup() {
 }
 
 void loop() {
-  // If we don't have new data, skip this iteration.
-  if (!ads.conversionComplete()) {
+  if (!new_data) {
     return;
   }
 
   int16_t results = ads.getLastConversionResults();
-
-  // Start another conversion.
-  ads.startADCReading(ADS1X15_REG_CONFIG_MUX_DIFF_0_1, /*continuous=*/false);
+  new_data = false;
 
   Serial.print("Differential: "); 
   Serial.print(results); 
@@ -270,5 +276,5 @@ void loop() {
   Serial.print(ads.computeVolts(results)); 
   Serial.println("V)");
   
-  delay(1000);
+  delay(500);
 }
