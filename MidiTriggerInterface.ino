@@ -65,14 +65,15 @@ MIDI_CREATE_INSTANCE(Adafruit_USBD_MIDI, usb_midi, MIDIusb);
 
 #include <Adafruit_ADS1X15.h>
 Adafruit_ADS1015 ads;
-
-// Pin connected to the ALERT/RDY signal for new sample notification.
 constexpr int READY_PIN = 28;
-
 volatile bool new_data = false;
 void NewDataReadyISR() {
   new_data = true;
 }
+
+#include <Wire.h>
+#define SDA_PIN 26  // Beispiel-Pin
+#define SCL_PIN 27  // Beispiel-Pin
 
 /* MIDI IN MESSAGE REPORTING */
 static void onNoteOn(Channel channel, byte note, byte velocity) {
@@ -243,6 +244,9 @@ void setup() {
   while (!Serial)
     ;  // wait for native usb
   
+  Wire.setSDA(SDA_PIN);
+  Wire.setSCL(SCL_PIN);
+  Wire.begin();
   if (ads.begin(0x48, &Wire)) {
     if (printEnabled) {
       Serial.println("ADC initialization SUCCESSFUL\r\n");
