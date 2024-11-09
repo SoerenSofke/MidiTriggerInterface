@@ -34,7 +34,7 @@
  * does not handle multiple USB MIDI devices connected at the same time.
  */
 
-static bool printEnabled = true;
+static bool printEnabled = false;
 
 #if defined(USE_TINYUSB_HOST) || !defined(USE_TINYUSB)
 #error "Please use the Menu to select Tools->USB Stack: Adafruit TinyUSB"
@@ -193,6 +193,7 @@ void setup1() {
   pinMode(PIN_5V_EN, OUTPUT);
   digitalWrite(PIN_5V_EN, HIGH);
 
+  Serial.begin(115200);
   while (!Serial)
     ;  // wait for native usb
   if (printEnabled) {
@@ -241,25 +242,40 @@ void setup() {
   MIDIusb.begin();
   MIDIusb.turnThruOff();  // turn off echo
 
+  Serial.begin(115200);
   while (!Serial)
     ;  // wait for native usb
-  
+
+
+  // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
+  ads.setGain(GAIN_TWOTHIRDS);
+
+  // ads.setDataRate(RATE_ADS1015_128SPS);
+  //ads.setDataRate(RATE_ADS1015_250SPS);
+  //ads.setDataRate(RATE_ADS1015_490SPS);
+  ads.setDataRate(RATE_ADS1015_920SPS);
+  // ads.setDataRate(RATE_ADS1015_1600SPS);
+  // ads.setDataRate(RATE_ADS1015_2400SPS);
+  // ads.setDataRate(RATE_ADS1015_3300SPS);
+
+
   Wire.setSDA(SDA_PIN);
   Wire.setSCL(SCL_PIN);
   Wire.begin();
+
   if (ads.begin(0x48, &Wire)) {
     if (printEnabled) {
       Serial.println("ADC initialization SUCCESSFUL\r\n");
-    }    
+    }
   } else {
     if (printEnabled) {
       Serial.println("ADC initialization FAILED\r\n");
     }
   }
 
-  pinMode(READY_PIN, INPUT);    
+  pinMode(READY_PIN, INPUT);
   attachInterrupt(digitalPinToInterrupt(READY_PIN), NewDataReadyISR, FALLING);
-  ads.startADCReading(ADS1X15_REG_CONFIG_MUX_DIFF_0_1, /*continuous=*/true);
+  ads.startADCReading(ADS1X15_REG_CONFIG_MUX_DIFF_2_3, /*continuous=*/true);
 
   core0_booting = false;
   while (core1_booting)
@@ -267,18 +283,14 @@ void setup() {
 }
 
 void loop() {
-  if (!new_data) {
-    return;
-  }
+  while (!new_data)
+    ;
 
   int16_t results = ads.getLastConversionResults();
   new_data = false;
 
-  Serial.print("Differential: "); 
-  Serial.print(results); 
-  Serial.print("("); 
-  Serial.print(ads.computeVolts(results)); 
-  Serial.println("V)");
-  
-  delay(500);
+  //Serial.println(abs(results));
+  //Serial.println((results));
+  //Serial.println(ads.computeVolts(results));
+  //delay(500);
 }
