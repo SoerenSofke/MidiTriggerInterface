@@ -36,6 +36,8 @@
 
 static bool printEnabled = true;
 
+#include "pico/stdlib.h"
+
 #if defined(USE_TINYUSB_HOST) || !defined(USE_TINYUSB)
 #error "Please use the Menu to select Tools->USB Stack: Adafruit TinyUSB"
 #endif
@@ -75,16 +77,23 @@ void NewDataReadyISR() {
 #define SDA_PIN 26  // Beispiel-Pin
 #define SCL_PIN 27  // Beispiel-Pin
 
+#define ALARM_MS 50
+int64_t alarm_callback(alarm_id_t id, __unused void* user_data) {
+  p.neoPixelFill(0, 32, 0, true);
+  return 0;
+}
+
 /* MIDI IN MESSAGE REPORTING */
 static void onNoteOn(Channel channel, byte note, byte velocity) {
-  // Velocity 0 equals note off
   if (velocity == 0) {
     onNoteOff(channel, note, velocity);
     return;
   }
 
   MIDIusb.sendNoteOn(note, velocity, channel);
+
   p.neoPixelFill(255, 0, 0, true);
+  add_alarm_in_ms(ALARM_MS, alarm_callback, NULL, false);
 
   if (printEnabled) {
     Serial.printf("C%u: Note on#%u v=%u\r\n", channel, note, velocity);
@@ -93,7 +102,6 @@ static void onNoteOn(Channel channel, byte note, byte velocity) {
 
 static void onNoteOff(Channel channel, byte note, byte velocity) {
   MIDIusb.sendNoteOff(note, velocity, channel);
-  p.neoPixelFill(0, 32, 0, true);
 
   if (printEnabled) {
     Serial.printf("C%u: Note off#%u v=%u\r\n", channel, note, velocity);
@@ -298,16 +306,14 @@ void loop() {
   sample_n2 = sample_n1;
   sample_n1 = sample;
 
-  if (sample_n3 < sample_n2 && 
-      sample_n2 > sample_n1 &&
-      sample_n2 > 10) {
-    
-    uint8_t velocity = min(6*sqrt(sample_n2), 127);
-    onNoteOn((Channel)1, (byte)0, (byte)velocity);
-    delay(50);    
+  if (sample_n3 < sample_n2 && sample_n2 > sample_n1 && sample_n2 > 10) {
+
+    uint8_t velocity = min(6 * sqrt(sample_n2), 127);
+    onNoteOn((Channel)1, (byte)36, (byte)velocity);
+    delay(ALARM_MS);
     sample_n3 = 0;
     sample_n2 = 0;
     sample_n1 = 0;
-    onNoteOff((Channel)1, (byte)0, (byte)0);
-  }  
+    onNoteOff((Channel)1, (byte)36, (byte)0);
+  }
 }
