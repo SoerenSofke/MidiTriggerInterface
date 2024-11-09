@@ -34,7 +34,7 @@
  * does not handle multiple USB MIDI devices connected at the same time.
  */
 
-static bool printEnabled = false;
+static bool printEnabled = true;
 
 #if defined(USE_TINYUSB_HOST) || !defined(USE_TINYUSB)
 #error "Please use the Menu to select Tools->USB Stack: Adafruit TinyUSB"
@@ -251,9 +251,9 @@ void setup() {
   ads.setGain(GAIN_TWOTHIRDS);
 
   // ads.setDataRate(RATE_ADS1015_128SPS);
-  //ads.setDataRate(RATE_ADS1015_250SPS);
-  //ads.setDataRate(RATE_ADS1015_490SPS);
-  ads.setDataRate(RATE_ADS1015_920SPS);
+  ads.setDataRate(RATE_ADS1015_250SPS);
+  // ads.setDataRate(RATE_ADS1015_490SPS);
+  // ads.setDataRate(RATE_ADS1015_920SPS);
   // ads.setDataRate(RATE_ADS1015_1600SPS);
   // ads.setDataRate(RATE_ADS1015_2400SPS);
   // ads.setDataRate(RATE_ADS1015_3300SPS);
@@ -282,15 +282,32 @@ void setup() {
     ;
 }
 
+volatile int sample_n1 = 0;
+volatile int sample_n2 = 0;
+volatile int sample_n3 = 0;
+
 void loop() {
   while (!new_data)
     ;
 
-  int16_t results = ads.getLastConversionResults();
+  int16_t sample = abs(ads.getLastConversionResults());
   new_data = false;
+  //Serial.println(sample);
 
-  //Serial.println(abs(results));
-  //Serial.println((results));
-  //Serial.println(ads.computeVolts(results));
-  //delay(500);
+  sample_n3 = sample_n2;
+  sample_n2 = sample_n1;
+  sample_n1 = sample;
+
+  if (sample_n3 < sample_n2 && 
+      sample_n2 > sample_n1 &&
+      sample_n2 > 10) {
+    
+    uint8_t velocity = min(6*sqrt(sample_n2), 127);
+    onNoteOn((Channel)1, (byte)0, (byte)velocity);
+    delay(50);    
+    sample_n3 = 0;
+    sample_n2 = 0;
+    sample_n1 = 0;
+    onNoteOff((Channel)1, (byte)0, (byte)0);
+  }  
 }
