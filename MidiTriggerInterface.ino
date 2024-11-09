@@ -65,7 +65,7 @@ MIDI_CREATE_INSTANCE(Adafruit_USBD_MIDI, usb_midi, MIDIusb);
 
 #include <Adafruit_ADS1X15.h>
 Adafruit_ADS1015 ads;
-constexpr int READY_PIN = 28;
+constexpr int READY_PIN = 13;
 volatile bool new_data = false;
 void NewDataReadyISR() {
   new_data = true;

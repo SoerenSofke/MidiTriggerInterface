@@ -12,4 +12,4 @@ GND
 3V3
 SDA   #26 (A0)
 SCL   #27 (A1)
-Ready #28 (A2)
+Ready #13 (D13)
