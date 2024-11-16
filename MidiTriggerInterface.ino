@@ -65,28 +65,45 @@ NeoPixelConnect p(PIN_NEOPIXEL, NUM_NEOPIXEL, pio0, 1);
 Adafruit_USBD_MIDI usb_midi;
 MIDI_CREATE_INSTANCE(Adafruit_USBD_MIDI, usb_midi, MIDIusb);
 
-#include <Adafruit_ADS1X15.h>
-Adafruit_ADS1015 ads;
-constexpr int READY_PIN = 13;
-volatile bool new_data = false;
-void NewDataReadyISR() {
-  new_data = true;
-}
-
-#include <Wire.h>
-#define SDA_PIN 26  // Beispiel-Pin
-#define SCL_PIN 27  // Beispiel-Pin
-
 #define ALARM_MS 50
 int64_t alarm_callback(alarm_id_t id, __unused void* user_data) {
   p.neoPixelFill(0, 32, 0, true);
   return 0;
 }
 
-/* MIDI IN MESSAGE REPORTING */
-static void onNoteOn(Channel channel, byte note, byte velocity) {
+// Drum Pedals
+#define HIHAT_PIN 27
+#define KICK_PIN 28
+
+uint32_t encodeVariables(uint16_t A, uint16_t B, uint16_t C) {
+  A = static_cast<uint16_t>(A & 0xFF);   // 8 Bit
+  B = static_cast<uint16_t>(B & 0xFFF);  // 12 Bit
+  C = static_cast<uint16_t>(C & 0xFFF);  // 12 Bit
+
+  return static_cast<uint32_t>((A << 24) | (B << 12) | C);
+}
+
+static void decodeVariables(uint32_t packed, uint16_t& A, uint16_t& B, uint16_t& C) {
+  A = static_cast<uint16_t>((packed >> 24) & 0xFF);   // 8 Bits
+  B = static_cast<uint16_t>((packed >> 12) & 0xFFF);  // 12 Bits
+  C = static_cast<uint16_t>(packed & 0xFFF);          // 12 Bits
+}
+
+// timer for sampling ADCs
+struct repeating_timer timer;
+
+bool timer_callback(struct repeating_timer* t) {
+  uint16_t sampleKick = analogRead(KICK_PIN);
+  uint16_t sampleHiHat = analogRead(HIHAT_PIN);
+  uint32_t samplePedals = encodeVariables(1, sampleKick, sampleHiHat);
+
+  rp2040.fifo.push_nb(samplePedals);
+  return true;
+}
+
+static void sendNoteOn(Channel channel, byte note, byte velocity) {
   if (velocity == 0) {
-    onNoteOff(channel, note, velocity);
+    sendNoteOff(channel, note, velocity);
     return;
   }
 
@@ -100,12 +117,22 @@ static void onNoteOn(Channel channel, byte note, byte velocity) {
   }
 }
 
-static void onNoteOff(Channel channel, byte note, byte velocity) {
+static void sendNoteOff(Channel channel, byte note, byte velocity) {
   MIDIusb.sendNoteOff(note, velocity, channel);
 
   if (printEnabled) {
     Serial.printf("C%u: Note off#%u v=%u\r\n", channel, note, velocity);
   }
+}
+
+
+/* MIDI IN MESSAGE REPORTING */
+static void onNoteOn(Channel channel, byte note, byte velocity) {
+  rp2040.fifo.push_nb(encodeVariables(2, note, velocity));
+}
+
+static void onNoteOff(Channel channel, byte note, byte velocity) {
+  rp2040.fifo.push_nb(encodeVariables(3, note, velocity));
 }
 
 static void onMidiError(int8_t errCode) {
@@ -191,8 +218,10 @@ static void onMIDIdisconnect(uint8_t devAddr) {
 }
 
 // core1's setup
-void setup1() {
+void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(KICK_PIN, INPUT);
+  pinMode(HIHAT_PIN, INPUT);
 
   pinMode(NEOPIXEL_POWER, OUTPUT);
   digitalWrite(NEOPIXEL_POWER, HIGH);
@@ -223,30 +252,27 @@ void setup1() {
   pio_usb_configuration_t pio_cfg = PIO_USB_DEFAULT_CONFIG;
   pio_cfg.pin_dp = HOST_PIN_DP;
 
-#if defined(ARDUINO_RASPBERRY_PI_PICO_W)
-  /* Need to swap PIOs so PIO code from CYW43 PIO SPI driver will fit */
-  pio_cfg.pio_rx_num = 0;
-  pio_cfg.pio_tx_num = 1;
-#endif /* ARDUINO_RASPBERRY_PI_PICO_W */
-
-  USBHost.configure_pio_usb(1, &pio_cfg);
+  USBHost.configure_pio_usb(0, &pio_cfg);
   // run host stack on controller (rhport) 1
   // Note: For rp2040 pico-pio-usb, calling USBHost.begin() on core1 will have most of the
   // host bit-banging processing work done in core1 to free up core0 for other work
-  usbhMIDI.begin(&USBHost, 1, onMIDIconnect, onMIDIdisconnect);
+  usbhMIDI.begin(&USBHost, 0, onMIDIconnect, onMIDIdisconnect);
 
-  core1_booting = false;
-  while (core0_booting)
+  // Start ADC timer
+  add_repeating_timer_ms(-1, timer_callback, NULL, &timer);
+
+  core0_booting = false;
+  while (core1_booting)
     ;
 }
 
 // core1's loop
-void loop1() {
+void loop() {
   USBHost.task();
   usbhMIDI.readAll();
 }
 
-void setup() {
+void setup1() {
   MIDIusb.begin();
   MIDIusb.turnThruOff();  // turn off echo
 
@@ -254,66 +280,71 @@ void setup() {
   while (!Serial)
     ;  // wait for native usb
 
-
-  // 2/3x gain +/- 6.144V  1 bit = 3mV      0.1875mV (default)
-  ads.setGain(GAIN_TWOTHIRDS);
-
-  // ads.setDataRate(RATE_ADS1015_128SPS);
-  ads.setDataRate(RATE_ADS1015_250SPS);
-  // ads.setDataRate(RATE_ADS1015_490SPS);
-  // ads.setDataRate(RATE_ADS1015_920SPS);
-  // ads.setDataRate(RATE_ADS1015_1600SPS);
-  // ads.setDataRate(RATE_ADS1015_2400SPS);
-  // ads.setDataRate(RATE_ADS1015_3300SPS);
-
-
-  Wire.setSDA(SDA_PIN);
-  Wire.setSCL(SCL_PIN);
-  Wire.begin();
-
-  if (ads.begin(0x48, &Wire)) {
-    if (printEnabled) {
-      Serial.println("ADC initialization SUCCESSFUL\r\n");
-    }
-  } else {
-    if (printEnabled) {
-      Serial.println("ADC initialization FAILED\r\n");
-    }
-  }
-
-  pinMode(READY_PIN, INPUT);
-  attachInterrupt(digitalPinToInterrupt(READY_PIN), NewDataReadyISR, FALLING);
-  ads.startADCReading(ADS1X15_REG_CONFIG_MUX_DIFF_2_3, /*continuous=*/true);
-
-  core0_booting = false;
-  while (core1_booting)
+  core1_booting = false;
+  while (core0_booting)
     ;
 }
 
-volatile int sample_n1 = 0;
-volatile int sample_n2 = 0;
-volatile int sample_n3 = 0;
+volatile int16_t sample_n1 = 0;
+volatile int16_t sample_n2 = 0;
+volatile int16_t sample_n3 = 0;
+volatile int16_t sample_n4 = 0;
 
-void loop() {
-  while (!new_data)
-    ;
+volatile int16_t velocity = 0;
 
-  int16_t sample = abs(ads.getLastConversionResults());
-  new_data = false;
-  //Serial.println(sample);
+void loop1() {
+  if (rp2040.fifo.available()) {
+    uint16_t source = 0;
+    uint16_t dataA = 0;
+    uint16_t dataB = 0;
+    decodeVariables(rp2040.fifo.pop(), source, dataA, dataB);
 
-  sample_n3 = sample_n2;
-  sample_n2 = sample_n1;
-  sample_n1 = sample;
+    switch (source) {
+      case 1:  // Drums Pedal Control
+        {
+          // Kick Sample
+          int16_t sample = dataA;
 
-  if (sample_n3 < sample_n2 && sample_n2 > sample_n1 && sample_n2 > 10) {
+          sample_n4 = sample_n3;
+          sample_n3 = sample_n2;
+          sample_n2 = sample_n1;
+          sample_n1 = sample;
 
-    uint8_t velocity = min(6 * sqrt(sample_n2), 127);
-    onNoteOn((Channel)1, (byte)36, (byte)velocity);
-    delay(ALARM_MS);
-    sample_n3 = 0;
-    sample_n2 = 0;
-    sample_n1 = 0;
-    onNoteOff((Channel)1, (byte)36, (byte)0);
+          if (sample_n4 >= 100 && sample_n1 < 100) {
+            velocity = max(min(sample_n3 - sample_n1, 127), 1);
+            sendNoteOn((Channel)1, (byte)36, (byte)velocity);
+            sample_n4 = sample_n3 = sample_n2 = sample_n1 = 0;
+          } else if (sample_n4 <= 100 && sample_n1 > 100) {
+            velocity = 0;
+            sendNoteOff((Channel)1, (byte)36, (byte)velocity);
+            sample_n4 = sample_n3 = sample_n2 = sample_n1 = 512;
+          }
+
+          //*
+          Serial.print("0,1023,");
+          Serial.print(sample);
+          Serial.print(",");
+          Serial.println(velocity);  // debug value
+          //*/
+
+          break;
+        }
+      case 2:
+        {
+          uint16_t note = dataA;
+          uint16_t velocity = dataB;
+          uint16_t channel = 1;
+          sendNoteOn(channel, note, velocity);
+          break;
+        }
+      case 3:
+        {
+          uint16_t note = dataA;
+          uint16_t velocity = dataB;
+          uint16_t channel = 1;
+          sendNoteOff(channel, note, velocity);
+          break;
+        }
+    }
   }
 }
