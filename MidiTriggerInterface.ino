@@ -1,38 +1,8 @@
-/* 
- * The MIT License (MIT)
- *
- * Copyright (c) 2023 rppicomidi
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
+//inline void meineFunktion() __attribute__((always_inline));
 
-/**
- * This demo program is designed to test the USB MIDI Host driver for a single USB
- * MIDI device connected to the USB Host port. It sends to the USB MIDI device the
- * sequence of half-steps from B-flat to D whose note numbers correspond to the
- * transport button LEDs on a Mackie Control compatible control surface. It also
- * prints to a UART serial port console the messages received from the USB MIDI device.
- *
- * This program works with a single USB MIDI device connected via a USB hub, but it
- * does not handle multiple USB MIDI devices connected at the same time.
- */
+enum PedalState { INIT,
+                  ON,
+                  OFF };
 
 static bool printEnabled = true;
 
@@ -66,8 +36,13 @@ Adafruit_USBD_MIDI usb_midi;
 MIDI_CREATE_INSTANCE(Adafruit_USBD_MIDI, usb_midi, MIDIusb);
 
 #define ALARM_MS 50
-int64_t alarm_callback(alarm_id_t id, __unused void* user_data) {
-  p.neoPixelFill(0, 32, 0, true);
+int64_t ledOffset_callback(alarm_id_t id, __unused void* user_data) {
+  if (midiDevAddr) {
+    p.neoPixelFill(0, 32, 0, true);
+  } else {
+    p.neoPixelFill(0, 0, 128, true);
+  }
+
   return 0;
 }
 
@@ -75,7 +50,7 @@ int64_t alarm_callback(alarm_id_t id, __unused void* user_data) {
 #define HIHAT_PIN 27
 #define KICK_PIN 28
 
-uint32_t encodeVariables(uint16_t A, uint16_t B, uint16_t C) {
+static uint32_t encodeVariables(uint16_t A, uint16_t B, uint16_t C) {
   A = static_cast<uint16_t>(A & 0xFF);   // 8 Bit
   B = static_cast<uint16_t>(B & 0xFFF);  // 12 Bit
   C = static_cast<uint16_t>(C & 0xFFF);  // 12 Bit
@@ -89,10 +64,37 @@ static void decodeVariables(uint32_t packed, uint16_t& A, uint16_t& B, uint16_t&
   C = static_cast<uint16_t>(packed & 0xFFF);          // 12 Bits
 }
 
+static uint16_t handleHiHatPedal(uint8_t pedalPosition_HiHat, uint16_t note) {
+  switch (pedalPosition_HiHat) {
+      // open
+    case 0:
+      return 46;
+      // semiopen
+    case 1 ... 15:
+      return 100;
+    case 16 ... 31:
+      return 101;
+    case 32 ... 47:
+      return 102;
+    case 48 ... 63:
+      return 103;
+    case 64 ... 79:
+      return 104;
+    case 80 ... 95:
+      return 105;
+    case 96 ... 111:
+      return 106;
+      // close
+    case 112 ... 127:
+      return 42;
+  }
+  return note;
+}
+
 // timer for sampling ADCs
 struct repeating_timer timer;
 
-bool timer_callback(struct repeating_timer* t) {
+bool adcTimer_callback(struct repeating_timer* t) {
   uint16_t sampleKick = analogRead(KICK_PIN);
   uint16_t sampleHiHat = analogRead(HIHAT_PIN);
   uint32_t samplePedals = encodeVariables(1, sampleKick, sampleHiHat);
@@ -103,44 +105,44 @@ bool timer_callback(struct repeating_timer* t) {
 
 static void sendNoteOn(Channel channel, byte note, byte velocity) {
   if (velocity == 0) {
-    sendNoteOff(channel, note, velocity);
+    sendNoteOff(channel, note);
     return;
   }
 
   MIDIusb.sendNoteOn(note, velocity, channel);
 
   p.neoPixelFill(255, 0, 0, true);
-  add_alarm_in_ms(ALARM_MS, alarm_callback, NULL, false);
+  add_alarm_in_ms(ALARM_MS, ledOffset_callback, NULL, false);
 
   if (printEnabled) {
-    Serial.printf("C%u: Note on#%u v=%u\r\n", channel, note, velocity);
+    Serial.printf("#%3u @%3u ON\r\n", note, velocity);
   }
 }
 
-static void sendNoteOff(Channel channel, byte note, byte velocity) {
+static void sendNoteOff(Channel channel, byte note) {
+  uint8_t velocity = 0;
   MIDIusb.sendNoteOff(note, velocity, channel);
 
   if (printEnabled) {
-    Serial.printf("C%u: Note off#%u v=%u\r\n", channel, note, velocity);
+    Serial.printf("#%3u @%3u OFF\r\n", note, velocity);
   }
 }
 
-
 /* MIDI IN MESSAGE REPORTING */
+static void onMidiError(int8_t errCode) {
+  if (printEnabled) {
+    Serial.printf("> MIDI Errors: %s %s %s\r\n", (errCode & (1UL << ErrorParse)) ? "Parse" : "",
+                  (errCode & (1UL << ErrorActiveSensingTimeout)) ? "Active Sensing Timeout" : "",
+                  (errCode & (1UL << WarningSplitSysEx)) ? "Split SysEx" : "");
+  }
+}
+
 static void onNoteOn(Channel channel, byte note, byte velocity) {
   rp2040.fifo.push_nb(encodeVariables(2, note, velocity));
 }
 
 static void onNoteOff(Channel channel, byte note, byte velocity) {
   rp2040.fifo.push_nb(encodeVariables(3, note, velocity));
-}
-
-static void onMidiError(int8_t errCode) {
-  if (printEnabled) {
-    Serial.printf("MIDI Errors: %s %s %s\r\n", (errCode & (1UL << ErrorParse)) ? "Parse" : "",
-                  (errCode & (1UL << ErrorActiveSensingTimeout)) ? "Active Sensing Timeout" : "",
-                  (errCode & (1UL << WarningSplitSysEx)) ? "Split SysEx" : "");
-  }
 }
 
 static void onPolyphonicAftertouch(Channel channel, byte note, byte amount) {}
@@ -199,7 +201,7 @@ static void onMIDIconnect(uint8_t devAddr, uint8_t nInCables, uint8_t nOutCables
   p.neoPixelFill(0, 32, 0, true);
 
   if (printEnabled) {
-    Serial.printf("MIDI device at address %u has %u IN cables and %u OUT cables\r\n", devAddr, nInCables, nOutCables);
+    Serial.printf("> MIDI device at address %u initialized.\r\n", devAddr);
   }
 
   midiDevAddr = devAddr;
@@ -213,11 +215,10 @@ static void onMIDIdisconnect(uint8_t devAddr) {
   midiDevAddr = 0;
 
   if (printEnabled) {
-    Serial.printf("MIDI device at address %u unplugged\r\n", devAddr);
+    Serial.printf("> MIDI device at address %u unplugged.\r\n", devAddr);
   }
 }
 
-// core1's setup
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(KICK_PIN, INPUT);
@@ -234,17 +235,15 @@ void setup() {
   while (!Serial)
     ;  // wait for native usb
   if (printEnabled) {
-    Serial.println("EZ USB MIDI HOST PIO Example for Arduino\r\n");
-    Serial.println("Core1 setup to run TinyUSB host with pio-usb\r\n");
+    Serial.println("> MIDI Trigger for Marlenes Drumkit :-)\r\n");
   }
 
   // Check for CPU frequency, must be multiple of 120Mhz for bit-banging USB
   uint32_t cpu_hz = clock_get_hz(clk_sys);
-  if (cpu_hz != 120000000UL && cpu_hz != 240000000UL) {
-    delay(2000);  // wait for native usb
+  if (cpu_hz != 120000000UL) {
+    delay(2000);
     if (printEnabled) {
-      Serial.printf("Error: CPU Clock = %u, PIO USB require CPU clock must be multiple of 120 Mhz\r\n", cpu_hz);
-      Serial.printf("Change your CPU Clock to either 120 or 240 Mhz in Menu->CPU Speed \r\n", cpu_hz);
+      Serial.printf("> Error: CPU Clock = %u, PIO USB require CPU clock must be 120 Mhz.\r\n", cpu_hz);      
     }
     while (1) delay(1);
   }
@@ -258,15 +257,13 @@ void setup() {
   // host bit-banging processing work done in core1 to free up core0 for other work
   usbhMIDI.begin(&USBHost, 0, onMIDIconnect, onMIDIdisconnect);
 
-  // Start ADC timer
-  add_repeating_timer_ms(-1, timer_callback, NULL, &timer);
+  add_repeating_timer_ms(-1, adcTimer_callback, NULL, &timer);
 
   core0_booting = false;
   while (core1_booting)
     ;
 }
 
-// core1's loop
 void loop() {
   USBHost.task();
   usbhMIDI.readAll();
@@ -280,69 +277,120 @@ void setup1() {
   while (!Serial)
     ;  // wait for native usb
 
+  p.neoPixelFill(0, 0, 128, true);
+
   core1_booting = false;
   while (core0_booting)
     ;
 }
 
-volatile int16_t sample_n1 = 0;
-volatile int16_t sample_n2 = 0;
-volatile int16_t sample_n3 = 0;
-volatile int16_t sample_n4 = 0;
+static void handlePedal(uint8_t note,
+                        uint16_t& pedalPosition,
+                        uint16_t& pedalPosition_n1,
+                        uint16_t& pedalPosition_n2,
+                        uint16_t& pedalPosition_n3,
+                        uint16_t& pedalPosition_n4,
+                        uint16_t& pedalPosition_n5,
+                        PedalState& padelState) {
 
-volatile int16_t velocity = 0;
+  // Map Position to 0 .. 127
+  pedalPosition = max(pedalPosition - 25, 0);
+  pedalPosition = min(pedalPosition, 255);
+  pedalPosition = map(pedalPosition, 0, 255, 127, 0);
+
+  // Buffer Most Recent Position Values
+  pedalPosition_n5 = pedalPosition_n4;
+  pedalPosition_n4 = pedalPosition_n3;
+  pedalPosition_n3 = pedalPosition_n2;
+  pedalPosition_n2 = pedalPosition_n1;
+  pedalPosition_n1 = pedalPosition;
+
+  // Check for Onset
+  if (pedalPosition_n1 >= 112 && pedalPosition_n2 < 112 && padelState != PedalState::ON) {
+    sendNoteOn((Channel)1, (byte)note, (byte)(pedalPosition_n1 - pedalPosition_n5));
+    pedalPosition_n5 = pedalPosition_n4 = pedalPosition_n3 = pedalPosition_n3 = pedalPosition_n1 = 127;
+    padelState = PedalState::ON;
+
+    // Check for Offset
+  } else if (pedalPosition_n1 < 64 && pedalPosition_n2 >= 64 && padelState != PedalState::OFF) {
+    sendNoteOff((Channel)1, (byte)note);
+    pedalPosition_n5 = pedalPosition_n4 = pedalPosition_n3 = pedalPosition_n3 = pedalPosition_n1 = 0;
+    padelState = PedalState::OFF;
+  }
+}
 
 void loop1() {
   if (rp2040.fifo.available()) {
+    static PedalState padelState_Kick = PedalState::INIT;
+    static PedalState padelState_HiHat = PedalState::INIT;
+
+    static uint16_t pedalPosition_Kick = 0;
+    static uint16_t pedalPosition_Kick_n1 = 0;
+    static uint16_t pedalPosition_Kick_n2 = 0;
+    static uint16_t pedalPosition_Kick_n3 = 0;
+    static uint16_t pedalPosition_Kick_n4 = 0;
+    static uint16_t pedalPosition_Kick_n5 = 0;
+
+    static uint16_t pedalPosition_HiHat = 0;
+    static uint16_t pedalPosition_HiHat_n1 = 0;
+    static uint16_t pedalPosition_HiHat_n2 = 0;
+    static uint16_t pedalPosition_HiHat_n3 = 0;
+    static uint16_t pedalPosition_HiHat_n4 = 0;
+    static uint16_t pedalPosition_HiHat_n5 = 0;
+
     uint16_t source = 0;
-    uint16_t dataA = 0;
-    uint16_t dataB = 0;
-    decodeVariables(rp2040.fifo.pop(), source, dataA, dataB);
+    uint16_t dataLeft = 0;
+    uint16_t dataRight = 0;
+    uint8_t note = 0;
+
+    decodeVariables(rp2040.fifo.pop(), source, dataLeft, dataRight);
 
     switch (source) {
-      case 1:  // Drums Pedal Control
+      case 1:  // Drums Pedals Control
         {
-          // Kick Sample
-          int16_t sample = dataA;
+          note = 36;
+          pedalPosition_Kick = dataRight;
+          handlePedal(note,
+                      pedalPosition_Kick,
+                      pedalPosition_Kick_n1,
+                      pedalPosition_Kick_n2,
+                      pedalPosition_Kick_n3,
+                      pedalPosition_Kick_n4,
+                      pedalPosition_Kick_n5,
+                      padelState_Kick);
 
-          sample_n4 = sample_n3;
-          sample_n3 = sample_n2;
-          sample_n2 = sample_n1;
-          sample_n1 = sample;
-
-          if (sample_n4 >= 100 && sample_n1 < 100) {
-            velocity = max(min(sample_n3 - sample_n1, 127), 1);
-            sendNoteOn((Channel)1, (byte)36, (byte)velocity);
-            sample_n4 = sample_n3 = sample_n2 = sample_n1 = 0;
-          } else if (sample_n4 <= 100 && sample_n1 > 100) {
-            velocity = 0;
-            sendNoteOff((Channel)1, (byte)36, (byte)velocity);
-            sample_n4 = sample_n3 = sample_n2 = sample_n1 = 512;
-          }
-
-          //*
-          Serial.print("0,1023,");
-          Serial.print(sample);
-          Serial.print(",");
-          Serial.println(velocity);  // debug value
-          //*/
+          note = 44;
+          pedalPosition_HiHat = dataLeft;
+          handlePedal(note,
+                      pedalPosition_HiHat,
+                      pedalPosition_HiHat_n1,
+                      pedalPosition_HiHat_n2,
+                      pedalPosition_HiHat_n3,
+                      pedalPosition_HiHat_n4,
+                      pedalPosition_HiHat_n5,
+                      padelState_HiHat);
 
           break;
         }
       case 2:
         {
-          uint16_t note = dataA;
-          uint16_t velocity = dataB;
+          uint16_t note = dataLeft;
+          uint16_t velocity = dataRight;
           uint16_t channel = 1;
+
+          // if the HiHat was triggered, check the pedal position and modify the MIDI node
+          if (note == 42) {
+            note = handleHiHatPedal(pedalPosition_HiHat, note);
+          }
+
           sendNoteOn(channel, note, velocity);
           break;
         }
       case 3:
         {
-          uint16_t note = dataA;
-          uint16_t velocity = dataB;
+          uint16_t note = dataLeft;
           uint16_t channel = 1;
-          sendNoteOff(channel, note, velocity);
+          sendNoteOff(channel, note);
           break;
         }
     }
