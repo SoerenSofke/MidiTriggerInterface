@@ -114,7 +114,7 @@ static void sendNoteOn(Channel channel, byte note, byte velocity) {
   p.neoPixelFill(255, 0, 0, true);
   add_alarm_in_ms(ALARM_MS, ledOffset_callback, NULL, false);
 
-  if (printEnabled) {
+  if (printEnabled && Serial) {
     Serial.printf("#%3u @%3u ON\r\n", note, velocity);
   }
 }
@@ -123,14 +123,14 @@ static void sendNoteOff(Channel channel, byte note) {
   uint8_t velocity = 0;
   MIDIusb.sendNoteOff(note, velocity, channel);
 
-  if (printEnabled) {
+  if (printEnabled && Serial) {
     Serial.printf("#%3u @%3u OFF\r\n", note, velocity);
   }
 }
 
 /* MIDI IN MESSAGE REPORTING */
 static void onMidiError(int8_t errCode) {
-  if (printEnabled) {
+  if (printEnabled && Serial) {
     Serial.printf("> MIDI Errors: %s %s %s\r\n", (errCode & (1UL << ErrorParse)) ? "Parse" : "",
                   (errCode & (1UL << ErrorActiveSensingTimeout)) ? "Active Sensing Timeout" : "",
                   (errCode & (1UL << WarningSplitSysEx)) ? "Split SysEx" : "");
@@ -200,7 +200,7 @@ static void registerMidiInCallbacks() {
 static void onMIDIconnect(uint8_t devAddr, uint8_t nInCables, uint8_t nOutCables) {
   p.neoPixelFill(0, 32, 0, true);
 
-  if (printEnabled) {
+  if (printEnabled && Serial) {
     Serial.printf("> MIDI device at address %u initialized.\r\n", devAddr);
   }
 
@@ -214,7 +214,7 @@ static void onMIDIdisconnect(uint8_t devAddr) {
 
   midiDevAddr = 0;
 
-  if (printEnabled) {
+  if (printEnabled && Serial) {
     Serial.printf("> MIDI device at address %u unplugged.\r\n", devAddr);
   }
 }
@@ -232,9 +232,7 @@ void setup() {
   digitalWrite(PIN_5V_EN, HIGH);
 
   Serial.begin(115200);
-  while (!Serial)
-    ;  // wait for native usb
-  if (printEnabled) {
+  if (printEnabled && Serial) {
     Serial.println("> MIDI Trigger for Marlenes Drumkit :-)\r\n");
   }
 
@@ -242,7 +240,7 @@ void setup() {
   uint32_t cpu_hz = clock_get_hz(clk_sys);
   if (cpu_hz != 120000000UL) {
     delay(2000);
-    if (printEnabled) {
+    if (printEnabled && Serial) {
       Serial.printf("> Error: CPU Clock = %u, PIO USB require CPU clock must be 120 Mhz.\r\n", cpu_hz);      
     }
     while (1) delay(1);
@@ -273,10 +271,7 @@ void setup1() {
   MIDIusb.begin();
   MIDIusb.turnThruOff();  // turn off echo
 
-  Serial.begin(115200);
-  while (!Serial)
-    ;  // wait for native usb
-
+  Serial.begin(115200);  
   p.neoPixelFill(0, 0, 128, true);
 
   core1_booting = false;
