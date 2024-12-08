@@ -1,0 +1,45 @@
+// --------------------------------------
+// SFZ format v2 with ARIA extensions
+// --------------------------------------
+// The Salamander Drumkit
+// Author: Alexander Holm
+// --------------------------------------
+// reconstructed by kinwie
+// --------------------------------------
+// edited to use the fixed up samples from essej
+// removing the kick fixes by kinwie
+// split into individual instruments by soeren.sofke
+
+<control>
+default_path=splash-samples\
+
+<global>
+loop_mode=one_shot
+
+//=======================================================
+<master> key=63
+
+<group> 
+amp_veltrack=96
+group_volume=-27
+lovel=1
+hivel=59
+
+<region> lorand=0.0 hirand=0.2 region_label=1 sample=splash1_OH_P_1.wav
+<region> lorand=0.2 hirand=0.4 region_label=2 sample=splash1_OH_P_2.wav
+<region> lorand=0.4 hirand=0.6 region_label=3 sample=splash1_OH_P_3.wav
+<region> lorand=0.6 hirand=0.8 region_label=4 sample=splash1_OH_P_4.wav
+<region> lorand=0.8 hirand=1.0 region_label=5 sample=splash1_OH_P_5.wav
+
+<group> 
+amp_veltrack=100
+group_volume=-15
+lovel=60
+hivel=127
+
+<region> lorand=0.0 hirand=0.2 region_label=1 sample=splash1_OH_F_1.wav
+<region> lorand=0.2 hirand=0.4 region_label=2 sample=splash1_OH_F_2.wav
+<region> lorand=0.4 hirand=0.6 region_label=3 sample=splash1_OH_F_3.wav
+<region> lorand=0.6 hirand=0.8 region_label=4 sample=splash1_OH_F_4.wav
+<region> lorand=0.8 hirand=1.0 region_label=5 sample=splash1_OH_F_5.wav
+
