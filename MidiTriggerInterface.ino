@@ -82,14 +82,34 @@ static uint16_t handleHiHatPedal(uint8_t pedalPosition_HiHat, uint16_t note) {
       return 104;
     case 80 ... 95:
       return 105;
-    case 96 ... 111:
-      return 106;
       // close
-    case 112 ... 127:
+    default:
       return 42;
   }
-  return note;
 }
+
+static constexpr uint8_t ccKick = 20;
+static constexpr uint8_t notesKick[2] = { 35, 36 };
+static uint8_t noteKick = notesKick[1];
+
+static constexpr uint8_t ccSnare = 21;
+static constexpr uint8_t notesSnare[2] = { 38, 40 };
+static uint8_t noteSnare = notesSnare[0];
+
+static constexpr uint8_t ccRide = 22;
+static constexpr uint8_t notesRide[2] = { 51, 59 };
+static uint8_t noteRide = notesRide[0];
+
+static constexpr uint8_t notesRideBell[2] = { 53, 05 };
+static uint8_t noteRideBell = notesRideBell[0];
+
+static constexpr uint8_t ccCrash = 24;
+static constexpr uint8_t notesCrash[2] = { 49, 57 };
+static uint8_t noteCrash = notesCrash[0];
+
+static constexpr uint8_t notesCrashChoke[2] = { 02, 03 };
+static uint8_t noteCrashChoke = notesCrashChoke[0];
+
 
 // timer for sampling ADCs
 struct repeating_timer timer;
@@ -103,12 +123,61 @@ bool adcTimer_callback(struct repeating_timer* t) {
   return true;
 }
 
+uint8_t mapNote(uint8_t note) {
+  note = note;
+
+  switch (note) {
+    case notesKick[0]:
+    case notesKick[1]:
+      {
+        note = noteKick;
+        break;
+      }
+    case notesSnare[0]:
+    case notesSnare[1]:
+      {
+        note = noteSnare;
+        break;
+      }
+    case notesRide[0]:
+    case notesRide[1]:
+      {
+        note = noteRide;
+        break;
+      }
+    case notesRideBell[0]:
+    case notesRideBell[1]:
+      {
+        note = noteRideBell;
+        break;
+      }
+    case notesCrash[0]:
+    case notesCrash[1]:
+      {
+        note = noteCrash;
+        break;
+      }
+    case notesCrashChoke[0]:
+    case notesCrashChoke[1]:
+      {
+        note = noteCrashChoke;
+        break;
+      }
+    default:
+      note = note;
+  }
+
+  return note;
+}
+
+
 static void sendNoteOn(Channel channel, byte note, byte velocity) {
   if (velocity == 0) {
     sendNoteOff(channel, note);
     return;
   }
 
+  note = mapNote(note);
   MIDIusb.sendNoteOn(note, velocity, channel);
 
   p.neoPixelFill(255, 0, 0, true);
@@ -121,6 +190,8 @@ static void sendNoteOn(Channel channel, byte note, byte velocity) {
 
 static void sendNoteOff(Channel channel, byte note) {
   uint8_t velocity = 0;
+
+  note = mapNote(note);
   MIDIusb.sendNoteOff(note, velocity, channel);
 
   if (printEnabled && Serial) {
@@ -145,8 +216,62 @@ static void onNoteOff(Channel channel, byte note, byte velocity) {
   rp2040.fifo.push_nb(encodeVariables(3, note, velocity));
 }
 
+
+static void onControlChange(Channel channel, byte controller, byte value) {
+  uint8_t note = 0;
+
+  switch (controller) {
+    case ccKick:
+      {
+        note = notesKick[value < 65];
+
+        if (note == noteKick) return;
+        else noteKick = note;
+        break;
+      }
+    case ccSnare:
+      {
+        note = notesSnare[value < 65];
+
+        if (note == noteSnare) return;
+        else noteSnare = note;
+        break;
+      }
+    case ccRide:
+      {
+        note = notesRide[value < 65];
+
+        if (note == noteRide) return;
+        else {
+          noteRide = note;
+          noteRideBell = notesRideBell[value < 65];
+        }
+
+        break;
+      }
+    case ccCrash:
+      {
+        note = notesCrash[value < 65];
+
+        if (note == noteCrash) return;
+        else {
+          noteCrash = note;
+          noteCrashChoke = notesCrashChoke[value < 65];
+        }
+        break;
+      }
+    default: return;
+  }
+
+  if (printEnabled && Serial) {
+    Serial.printf("CC#%3u @%2u \r\n", controller, note);
+  }
+
+  p.neoPixelFill(0, 0, 255, true);
+  add_alarm_in_ms(ALARM_MS, ledOffset_callback, NULL, false);
+}
+
 static void onPolyphonicAftertouch(Channel channel, byte note, byte amount) {}
-static void onControlChange(Channel channel, byte controller, byte value) {}
 static void onProgramChange(Channel channel, byte program) {}
 static void onAftertouch(Channel channel, byte value) {}
 static void onPitchBend(Channel channel, int value) {}
@@ -241,7 +366,7 @@ void setup() {
   if (cpu_hz != 120000000UL) {
     delay(2000);
     if (printEnabled && Serial) {
-      Serial.printf("> Error: CPU Clock = %u, PIO USB require CPU clock must be 120 Mhz.\r\n", cpu_hz);      
+      Serial.printf("> Error: CPU Clock = %u, PIO USB require CPU clock must be 120 Mhz.\r\n", cpu_hz);
     }
     while (1) delay(1);
   }
@@ -271,7 +396,7 @@ void setup1() {
   MIDIusb.begin();
   MIDIusb.turnThruOff();  // turn off echo
 
-  Serial.begin(115200);  
+  Serial.begin(115200);
   p.neoPixelFill(0, 0, 128, true);
 
   core1_booting = false;
@@ -301,13 +426,13 @@ static void handlePedal(uint8_t note,
   pedalPosition_n1 = pedalPosition;
 
   // Check for Onset
-  if (pedalPosition_n1 >= 112 && pedalPosition_n2 < 112 && padelState != PedalState::ON) {
+  if (pedalPosition_n1 >= 96 && pedalPosition_n2 < 96 && padelState != PedalState::ON) {
     sendNoteOn((Channel)1, (byte)note, (byte)(pedalPosition_n1 - pedalPosition_n5));
     pedalPosition_n5 = pedalPosition_n4 = pedalPosition_n3 = pedalPosition_n3 = pedalPosition_n1 = 127;
     padelState = PedalState::ON;
 
     // Check for Offset
-  } else if (pedalPosition_n1 < 64 && pedalPosition_n2 >= 64 && padelState != PedalState::OFF) {
+  } else if (pedalPosition_n1 < 32 && pedalPosition_n2 >= 32 && padelState != PedalState::OFF) {
     sendNoteOff((Channel)1, (byte)note);
     pedalPosition_n5 = pedalPosition_n4 = pedalPosition_n3 = pedalPosition_n3 = pedalPosition_n1 = 0;
     padelState = PedalState::OFF;
