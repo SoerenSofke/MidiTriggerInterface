@@ -12,7 +12,7 @@ KEY	INSTRUMENT
 42	HiHat 			<- /42 (Closed)
 				<- /44 (Pedal) 
 				<- /46 (Open)
-				<- 100..106 (SemiOpen)
+				<- 100..105 (SemiOpen)
 
 55 	Crash-1			<- /49 (49 <-> 57)		// Default: Crash-1 and Crash-2 to be the most complete / coherent instrument	
 57 	Crash-2			<- /57 (49 <-> 57)
