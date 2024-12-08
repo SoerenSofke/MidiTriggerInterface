@@ -1,0 +1,120 @@
+// --------------------------------------
+// SFZ format v2 with ARIA extensions
+// --------------------------------------
+// The Salamander Drumkit
+// Author: Alexander Holm
+// --------------------------------------
+// reconstructed by kinwie
+// --------------------------------------
+// edited to use the fixed up samples from essej
+// removing the kick fixes by kinwie
+// split into individual instruments by soeren.sofke
+
+<control>
+default_path=crash-samples\
+
+<global>
+loop_mode=one_shot
+
+//=======================================================
+<master> 
+key=49
+group=5 
+off_by=6
+off_mode=normal
+ampeg_release=0.6
+
+<group> 
+amp_veltrack=95 
+group_volume=-19
+lovel=1
+hivel=59
+
+<region> lorand=0.0 hirand=0.2 region_label=1 sample=crash1_OH_P_1.wav
+<region> lorand=0.2 hirand=0.4 region_label=2 sample=crash1_OH_P_2.wav
+<region> lorand=0.4 hirand=0.6 region_label=3 sample=crash1_OH_P_3.wav
+<region> lorand=0.6 hirand=0.8 region_label=4 sample=crash1_OH_P_4.wav
+<region> lorand=0.8 hirand=1.0 region_label=5 sample=crash1_OH_P_5.wav
+
+<group>
+amp_veltrack=100
+group_volume=-12
+lovel=60
+hivel=127
+
+<region> lorand=0.000 hirand=0.166 region_label=1 sample=crash1_OH_FF_1.wav
+<region> lorand=0.166 hirand=0.332 region_label=2 sample=crash1_OH_FF_2.wav
+<region> lorand=0.332 hirand=0.498 region_label=3 sample=crash1_OH_FF_3.wav
+<region> lorand=0.498 hirand=0.664 region_label=4 sample=crash1_OH_FF_4.wav
+<region> lorand=0.664 hirand=0.830 region_label=5 sample=crash1_OH_FF_5.wav
+<region> lorand=0.830 hirand=1.000 region_label=6 sample=crash1_OH_FF_6.wav
+
+//=======================================================
+<master> 
+key=2 
+amp_veltrack=100
+group_volume=-29
+group=6
+
+<group> 
+lovel=1
+hivel=127
+
+<region> region_label=1 sample=crash1Choke_OH_F_1.wav
+
+//=======================================================
+<master> 
+key=57
+group=7 
+off_by=8
+off_mode=normal
+ampeg_release=0.6
+
+<group> group_label=crash2_OH_P amp_veltrack=95 group_volume=-18 lovel=1 hivel=59
+<region> lorand=0.00 hirand=0.25 region_label=1 sample=crash2_OH_P_1.wav
+<region> lorand=0.25 hirand=0.50 region_label=2 sample=crash2_OH_P_2.wav
+<region> lorand=0.50 hirand=0.75 region_label=3 sample=crash2_OH_P_3.wav
+<region> lorand=0.75 hirand=1.00 region_label=4 sample=crash2_OH_P_4.wav
+
+<group> group_label=crash2_OH_FF amp_veltrack=100 group_volume=-17 lovel=60 hivel=127
+<region> lorand=0.000 hirand=0.125 region_label=1 sample=crash2_OH_FF_1.wav
+<region> lorand=0.125 hirand=0.250 region_label=2 sample=crash2_OH_FF_2.wav
+<region> lorand=0.250 hirand=0.375 region_label=3 sample=crash2_OH_FF_3.wav
+<region> lorand=0.375 hirand=0.500 region_label=4 sample=crash2_OH_FF_4.wav
+<region> lorand=0.500 hirand=0.625 region_label=5 sample=crash2_OH_FF_5.wav
+<region> lorand=0.625 hirand=0.750 region_label=6 sample=crash2_OH_FF_6.wav
+<region> lorand=0.750 hirand=0.875 region_label=7 sample=crash2_OH_FF_7.wav
+<region> lorand=0.875 hirand=1.000 region_label=8 sample=crash2_OH_FF_8.wav
+
+//=======================================================
+<master> 
+key=3 
+amp_veltrack=100
+group_volume=-29
+group=8
+
+<group>
+lovel=1
+hivel=127
+
+<region> region_label=1 sample=crash2Choke_OH_F_1.wav
+
+//=======================================================
+<master> 
+key=4
+amp_veltrack=100
+group_volume=-17
+
+<group> 
+lovel=1
+hivel=127
+
+<region> lorand=0.000 hirand=0.125 region_label=1 sample=crash3_OH_FF_1.wav
+<region> lorand=0.125 hirand=0.250 region_label=2 sample=crash3_OH_FF_2.wav
+<region> lorand=0.250 hirand=0.375 region_label=3 sample=crash3_OH_FF_3.wav
+<region> lorand=0.375 hirand=0.500 region_label=4 sample=crash3_OH_FF_4.wav
+<region> lorand=0.500 hirand=0.625 region_label=5 sample=crash3_OH_FF_5.wav
+<region> lorand=0.625 hirand=0.750 region_label=6 sample=crash3_OH_FF_6.wav
+<region> lorand=0.750 hirand=0.875 region_label=7 sample=crash3_OH_FF_7.wav
+<region> lorand=0.875 hirand=1.000 region_label=8 sample=crash3_OH_FF_8.wav
+

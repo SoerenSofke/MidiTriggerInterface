@@ -1,0 +1,30 @@
+// --------------------------------------
+// SFZ format v2 with ARIA extensions
+// --------------------------------------
+// The Salamander Drumkit
+// Author: Alexander Holm
+// --------------------------------------
+// reconstructed by kinwie
+// --------------------------------------
+// edited to use the fixed up samples from essej
+// removing the kick fixes by kinwie
+
+<control>
+default_path=bellchime-samples\
+
+<global> 
+loop_mode=one_shot
+
+//=======================================================
+<master> 
+key=64
+amp_veltrack=100
+group_volume=-15
+
+<group> 
+lovel=1
+hivel=127
+
+<region> lorand=0.000 hirand=0.333 region_label=1 sample=bellchime_F_1.wav
+<region> lorand=0.333 hirand=0.667 region_label=2 sample=bellchime_F_2.wav
+<region> lorand=0.667 hirand=1.000 region_label=3 sample=bellchime_F_3.wav

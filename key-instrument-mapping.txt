@@ -1,0 +1,92 @@
+KEY	INSTRUMENT
+35 	Kick 			<- /35 (35 <-cc20-> 36)
+36 	Kick-2		 	<- /36 (35 <-cc20-> 36)
+
+41	Snare-Stick		<- /37				// Default: Snare to be the moste complete / coherent instrument
+40 	Snare			<- /38 (38 <-cc21-> 40)
+38	Snare-2			<- /40 (38 <-cc21-> 40)
+39 	Snare-Off		<- /50 (50 <-cc23-> 01, on/off)
+37 	Snare-2-Off		<-  01 (50 <-cc23-> 01, on/off)
+
+
+42	HiHat 			<- /42 (Closed)
+				<- /44 (Pedal) 
+				<- /46 (Open)
+				<- 100..106 (SemiOpen)
+
+55 	Crash-1			<- /49 (49 <-> 57)		// Default: Crash-1 and Crash-2 to be the most complete / coherent instrument	
+57 	Crash-2			<- /57 (49 <-> 57)
+54	Crash-1-Choke		<-  02 (02 <-> 03)
+56 	Crash-2-Choke		<-  03 (02 <-> 03)
+62 	Crash-3			<-  04
+
+
+
+52	Ride-1			<- /59 (51 <-> 59)
+48	Ride-2			<- /51 (51 <-> 59)		// Default: Ride-2 to be the most complete / coherent instrument
+53	Ride-1-Bell		<-  05 (53 <-> 05)
+49	Ride-2-Bell		<- /53 (53 <-> 05)
+50	Ride-2-Crash		<-  06 
+51	Ride-2-Choke		<-  07
+
+59	China-1			<- /52 (52 <-> 08)
+60	China-2			<-  08 (52 <-> 08)
+58	China-1-Choke		<-  09 (09 <-> 10)
+61	China-2-Choke		<-  10 (09 <-> 10)
+
+63 	Splash 			<- /55
+47	Cowbell 		<- /56
+
+64 	Bellchim		<-  11
+
+43 	Floor Tom		<- /43
+n/a	Low-Mid Tom		<- /47
+45 	Hi-Mid Tom		<- /48
+
+
+///////////////////////////////////////////////////////////////
+Tuning Toms and Snare:
+* https://tune-bot.com/tunebottuningguide.pdf
+
+Call to the Post
+Key		Instrument	Target				Status Quo	Pitch by Semitones
+/35/36		Base Drum 	E1 		 41.2		E1		0
+/43		Low Floor Tom 	E2 		 82.4		B1		+500
+/47		Mid-Rack Tom	A2 		110.0		C3/C3#		-400
+/48		Hi-Rack Tom	C3#		138.6		C3/C3#		~0
+/39/40		Snare1		E3		164.8		G3#		-400
+/37/38		Snare2		E3		164.8		D3		-200
+
+//////////////////////////////////////////////////////////////
+
+1. HiHat vervollständigen
+2. Totzeit fück Kick einführen
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

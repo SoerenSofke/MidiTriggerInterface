@@ -1,0 +1,168 @@
+// --------------------------------------
+// SFZ format v2 with ARIA extensions
+// --------------------------------------
+// The Salamander Drumkit
+// Author: Alexander Holm
+// --------------------------------------
+// reconstructed by kinwie
+// --------------------------------------
+// edited to use the fixed up samples from essej
+// removing the kick fixes by kinwie
+// split into individual instruments by soeren.sofke
+
+<control>
+default_path=ride-samples\
+
+<global> 
+loop_mode=one_shot
+
+//=======================================================
+<master> 
+key=59
+amp_veltrack=100
+group_volume=-12
+
+<group> 
+lovel=1 
+hivel=90
+
+<region> lorand=0.000 hirand=0.125 region_label=1 sample=ride1_OH_MP_1.wav
+<region> lorand=0.125 hirand=0.250 region_label=2 sample=ride1_OH_MP_2.wav
+<region> lorand=0.250 hirand=0.375 region_label=3 sample=ride1_OH_MP_3.wav
+<region> lorand=0.375 hirand=0.500 region_label=4 sample=ride1_OH_MP_4.wav
+<region> lorand=0.500 hirand=0.625 region_label=5 sample=ride1_OH_MP_5.wav
+<region> lorand=0.625 hirand=0.750 region_label=6 sample=ride1_OH_MP_6.wav
+<region> lorand=0.750 hirand=0.875 region_label=7 sample=ride1_OH_MP_7.wav
+<region> lorand=0.875 hirand=1.000 region_label=8 sample=ride1_OH_MP_8.wav
+
+<group> 
+lovel=91 
+hivel=127
+
+<region> lorand=0.00 hirand=0.25 region_label=1 sample=ride1_OH_FF_1.wav
+<region> lorand=0.25 hirand=0.50 region_label=2 sample=ride1_OH_FF_2.wav
+<region> lorand=0.50 hirand=0.75 region_label=3 sample=ride1_OH_FF_3.wav
+<region> lorand=0.75 hirand=1.00 region_label=4 sample=ride1_OH_FF_4.wav
+
+//=======================================================
+<master> 
+key=5
+amp_veltrack=100
+group_volume=-12
+
+<group> 
+lovel=1 
+hivel=127
+
+<region> lorand=0.000 hirand=0.166 region_label=1 sample=ride1Bell_OH_F_1.wav
+<region> lorand=0.166 hirand=0.332 region_label=2 sample=ride1Bell_OH_F_2.wav
+<region> lorand=0.332 hirand=0.498 region_label=3 sample=ride1Bell_OH_F_3.wav
+<region> lorand=0.498 hirand=0.664 region_label=4 sample=ride1Bell_OH_F_4.wav
+<region> lorand=0.664 hirand=0.830 region_label=5 sample=ride1Bell_OH_F_5.wav
+<region> lorand=0.830 hirand=1.000 region_label=6 sample=ride1Bell_OH_F_6.wav
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+<master> 
+key=51
+amp_veltrack=100
+group_volume=-12
+group=3 
+off_by=4
+off_mode=normal
+ampeg_release=0.6
+
+<group> 
+lovel=1 
+hivel=30
+
+<region> lorand=0.00 hirand=0.25 region_label=1 sample=ride2_OH_PP_1.wav
+<region> lorand=0.25 hirand=0.50 region_label=2 sample=ride2_OH_PP_2.wav
+<region> lorand=0.50 hirand=0.75 region_label=3 sample=ride2_OH_PP_3.wav
+<region> lorand=0.75 hirand=1.00 region_label=4 sample=ride2_OH_PP_4.wav
+
+<group> 
+lovel=31
+hivel=80
+
+<region> lorand=0.000 hirand=0.125 region_label=1 sample=ride2_OH_MP_1.wav
+<region> lorand=0.125 hirand=0.250 region_label=2 sample=ride2_OH_MP_2.wav
+<region> lorand=0.250 hirand=0.375 region_label=3 sample=ride2_OH_MP_3.wav
+<region> lorand=0.375 hirand=0.500 region_label=4 sample=ride2_OH_MP_4.wav
+<region> lorand=0.500 hirand=0.625 region_label=5 sample=ride2_OH_MP_5.wav
+<region> lorand=0.625 hirand=0.750 region_label=6 sample=ride2_OH_MP_6.wav
+<region> lorand=0.750 hirand=0.875 region_label=7 sample=ride2_OH_MP_7.wav
+<region> lorand=0.875 hirand=1.000 region_label=8 sample=ride2_OH_MP_8.wav
+
+<group> 
+lovel=81 
+hivel=127
+
+<region> lorand=0.0 hirand=0.2 region_label=1 sample=ride2_OH_FF_1.wav
+<region> lorand=0.2 hirand=0.4 region_label=2 sample=ride2_OH_FF_2.wav
+<region> lorand=0.4 hirand=0.6 region_label=3 sample=ride2_OH_FF_3.wav
+<region> lorand=0.6 hirand=0.8 region_label=4 sample=ride2_OH_FF_4.wav
+<region> lorand=0.8 hirand=1.0 region_label=5 sample=ride2_OH_FF_5.wav
+
+//=======================================================
+<master> 
+key=53
+amp_veltrack=100
+group_volume=-12
+group=3 
+off_by=4
+off_mode=normal
+ampeg_release=0.6
+
+<group> 
+lovel=1 
+hivel=127
+
+<region> lorand=0.000 hirand=0.166 region_label=1 sample=ride2Bell_OH_F_1.wav
+<region> lorand=0.166 hirand=0.332 region_label=2 sample=ride2Bell_OH_F_2.wav
+<region> lorand=0.332 hirand=0.498 region_label=3 sample=ride2Bell_OH_F_3.wav
+<region> lorand=0.498 hirand=0.664 region_label=4 sample=ride2Bell_OH_F_4.wav
+<region> lorand=0.664 hirand=0.830 region_label=5 sample=ride2Bell_OH_F_5.wav
+<region> lorand=0.830 hirand=1.000 region_label=6 sample=ride2Bell_OH_F_6.wav
+
+//=======================================================
+<master> 
+key=6
+amp_veltrack=100
+group_volume=-16
+group=3 
+off_by=4
+off_mode=normal
+ampeg_release=0.6
+
+<group> 
+lovel=1 
+hivel=59
+
+<region> lorand=0.000 hirand=0.333 region_label=1 sample=ride2Crash_OH_MP_1.wav
+<region> lorand=0.333 hirand=0.667 region_label=2 sample=ride2Crash_OH_MP_2.wav
+<region> lorand=0.667 hirand=1.000 region_label=3 sample=ride2Crash_OH_MP_3.wav
+
+<group>
+lovel=60 
+hivel=127
+
+<region> lorand=0.000 hirand=0.166 region_label=1 sample=ride2Crash_OH_FF_1.wav
+<region> lorand=0.166 hirand=0.332 region_label=2 sample=ride2Crash_OH_FF_2.wav
+<region> lorand=0.332 hirand=0.498 region_label=3 sample=ride2Crash_OH_FF_3.wav
+<region> lorand=0.498 hirand=0.664 region_label=4 sample=ride2Crash_OH_FF_4.wav
+<region> lorand=0.664 hirand=0.830 region_label=5 sample=ride2Crash_OH_FF_5.wav
+<region> lorand=0.830 hirand=1.000 region_label=6 sample=ride2Crash_OH_FF_6.wav
+
+//=======================================================
+<master> 
+key=7 
+amp_veltrack=100 
+group_volume=-30 
+group=4
+
+<group> 
+lovel=1 
+hivel=127
+
+<region> region_label=1 sample=ride2CrashChoke_OH_F_1.wav

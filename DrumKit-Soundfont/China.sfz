@@ -1,0 +1,85 @@
+// --------------------------------------
+// SFZ format v2 with ARIA extensions
+// --------------------------------------
+// The Salamander Drumkit
+// Author: Alexander Holm
+// --------------------------------------
+// reconstructed by kinwie
+// --------------------------------------
+// edited to use the fixed up samples from essej
+// removing the kick fixes by kinwie
+// split into individual instruments by soeren.sofke
+
+<control>
+default_path=china-samples\
+
+<global>
+loop_mode=one_shot
+
+//=======================================================
+<master> 
+key=59
+amp_veltrack=100
+group_volume=-10
+group=9
+off_by=10
+off_mode=normal
+ampeg_release=0.6
+
+<group> group_label=china1_OH_FF lovel=1 hivel=127
+<region> lorand=0.000 hirand=0.125 region_label=1 sample=china1_OH_FF_1.wav
+<region> lorand=0.125 hirand=0.250 region_label=2 sample=china1_OH_FF_2.wav
+<region> lorand=0.250 hirand=0.375 region_label=3 sample=china1_OH_FF_3.wav
+<region> lorand=0.375 hirand=0.500 region_label=4 sample=china1_OH_FF_4.wav
+<region> lorand=0.500 hirand=0.625 region_label=5 sample=china1_OH_FF_5.wav
+<region> lorand=0.625 hirand=0.750 region_label=6 sample=china1_OH_FF_6.wav
+<region> lorand=0.750 hirand=0.875 region_label=7 sample=china1_OH_FF_7.wav
+<region> lorand=0.875 hirand=1.000 region_label=8 sample=china1_OH_FF_8.wav
+
+//=======================================================
+<master> 
+key=58 
+amp_veltrack=100
+group_volume=-25
+group=10
+
+<group>
+lovel=1
+hivel=127
+
+<region> region_label=1 sample=china1Choke_OH_F_1.wav
+
+
+//=======================================================
+<master> 
+key=60
+amp_veltrack=100
+group_volume=-8
+group=11 
+off_by=12
+off_mode=normal
+ampeg_release=0.6
+
+<group> 
+lovel=1
+hivel=127
+
+<region> lorand=0.000 hirand=0.166 region_label=1 sample=china2_OH_FF_1.wav
+<region> lorand=0.166 hirand=0.332 region_label=2 sample=china2_OH_FF_2.wav
+<region> lorand=0.332 hirand=0.498 region_label=3 sample=china2_OH_FF_3.wav
+<region> lorand=0.498 hirand=0.664 region_label=4 sample=china2_OH_FF_4.wav
+<region> lorand=0.664 hirand=0.830 region_label=5 sample=china2_OH_FF_5.wav
+<region> lorand=0.830 hirand=1.000 region_label=6 sample=china2_OH_FF_6.wav
+
+//=======================================================
+<master> 
+key=61
+amp_veltrack=100
+group_volume=-24
+group=12
+
+<group> 
+lovel=1
+hivel=127
+
+<region> region_label=1 sample=china2Choke_OH_F_1.wav

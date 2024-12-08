@@ -1,0 +1,123 @@
+// --------------------------------------
+// SFZ format v2 with ARIA extensions
+// --------------------------------------
+// The Salamander Drumkit
+// Author: Alexander Holm
+// --------------------------------------
+// reconstructed by kinwie
+// --------------------------------------
+// edited to use the fixed up samples from essej
+// removing the kick fixes by kinwie
+// split into individual instruments by soeren.sofke
+
+<control>
+default_path=kick-samples\
+
+<global> 
+loop_mode=one_shot
+
+//=======================================================
+<master> 
+key=35
+amp_veltrack=93
+group_volume=-7
+
+<group> 
+lovel=1 
+hivel=39
+
+<region> lorand=0.00 hirand=0.11 region_label=1 sample=kick_OH_P_1.wav volume=9.6
+<region> lorand=0.11 hirand=0.22 region_label=2 sample=kick_OH_P_2.wav
+<region> lorand=0.22 hirand=0.33 region_label=3 sample=kick_OH_P_3.wav
+<region> lorand=0.33 hirand=0.44 region_label=4 sample=kick_OH_P_4.wav
+<region> lorand=0.44 hirand=0.55 region_label=5 sample=kick_OH_P_5.wav
+<region> lorand=0.55 hirand=0.66 region_label=6 sample=kick_OH_P_6.wav
+<region> lorand=0.66 hirand=0.77 region_label=7 sample=kick_OH_P_7.wav
+<region> lorand=0.77 hirand=0.88 region_label=8 sample=kick_OH_P_8.wav
+<region> lorand=0.88 hirand=1.00 region_label=9 sample=kick_OH_P_9.wav
+
+<group> 
+lovel=40 
+hivel=79
+
+<region> lorand=0.00 hirand=0.09 region_label=1 sample=kick_OH_F_1.wav
+<region> lorand=0.09 hirand=0.18 region_label=2 sample=kick_OH_F_2.wav
+<region> lorand=0.18 hirand=0.27 region_label=3 sample=kick_OH_F_3.wav
+<region> lorand=0.27 hirand=0.36 region_label=4 sample=kick_OH_F_4.wav
+<region> lorand=0.36 hirand=0.45 region_label=5 sample=kick_OH_F_5.wav
+<region> lorand=0.45 hirand=0.54 region_label=6 sample=kick_OH_F_6.wav
+<region> lorand=0.54 hirand=0.63 region_label=7 sample=kick_OH_F_7.wav
+<region> lorand=0.63 hirand=0.72 region_label=8 sample=kick_OH_F_8.wav
+<region> lorand=0.72 hirand=0.81 region_label=9 sample=kick_OH_F_9.wav
+<region> lorand=0.81 hirand=0.90 region_label=10 sample=kick_OH_F_10.wav
+<region> lorand=0.90 hirand=1.00 region_label=11 sample=kick_OH_F_11.wav
+
+<group> 
+lovel=80 
+hivel=127
+
+<region> lorand=0.00 hirand=0.08 region_label=1 sample=kick_OH_FF_1.wav
+<region> lorand=0.08 hirand=0.16 region_label=2 sample=kick_OH_FF_2.wav
+<region> lorand=0.16 hirand=0.24 region_label=3 sample=kick_OH_FF_3.wav
+<region> lorand=0.24 hirand=0.32 region_label=4 sample=kick_OH_FF_4.wav
+<region> lorand=0.32 hirand=0.40 region_label=5 sample=kick_OH_FF_5.wav
+<region> lorand=0.40 hirand=0.48 region_label=6 sample=kick_OH_FF_6.wav
+<region> lorand=0.48 hirand=0.56 region_label=7 sample=kick_OH_FF_7.wav
+<region> lorand=0.56 hirand=0.64 region_label=8 sample=kick_OH_FF_8.wav
+<region> lorand=0.64 hirand=0.72 region_label=9 sample=kick_OH_FF_9.wav
+<region> lorand=0.72 hirand=0.80 region_label=10 sample=kick_OH_FF_10.wav
+<region> lorand=0.80 hirand=0.90 region_label=11 sample=kick_OH_FF_11.wav
+<region> lorand=0.90 hirand=1.00 region_label=12 sample=kick_OH_FF_12.wav
+
+//=======================================================
+<master> 
+key=36
+amp_veltrack=93
+group_volume=-7
+
+<group> 
+lovel=1 
+hivel=39
+
+<region> lorand=0.00 hirand=0.11 region_label=1 sample=kick2_OH_P_1.wav
+<region> lorand=0.11 hirand=0.22 region_label=2 sample=kick2_OH_P_2.wav
+<region> lorand=0.22 hirand=0.33 region_label=3 sample=kick2_OH_P_3.wav
+<region> lorand=0.33 hirand=0.44 region_label=4 sample=kick2_OH_P_4.wav
+<region> lorand=0.44 hirand=0.55 region_label=5 sample=kick2_OH_P_5.wav
+<region> lorand=0.55 hirand=0.66 region_label=6 sample=kick2_OH_P_6.wav
+<region> lorand=0.66 hirand=0.77 region_label=7 sample=kick2_OH_P_7.wav
+<region> lorand=0.77 hirand=0.88 region_label=8 sample=kick2_OH_P_8.wav
+<region> lorand=0.88 hirand=1.00 region_label=9 sample=kick2_OH_P_9.wav
+
+<group> 
+lovel=40 
+hivel=79
+
+<region> lorand=0.00 hirand=0.09 region_label=1 sample=kick2_OH_F_1.wav
+<region> lorand=0.09 hirand=0.18 region_label=2 sample=kick2_OH_F_2.wav
+<region> lorand=0.18 hirand=0.27 region_label=3 sample=kick2_OH_F_3.wav
+<region> lorand=0.27 hirand=0.36 region_label=4 sample=kick2_OH_F_4.wav
+<region> lorand=0.36 hirand=0.45 region_label=5 sample=kick2_OH_F_5.wav
+<region> lorand=0.45 hirand=0.54 region_label=6 sample=kick2_OH_F_6.wav
+<region> lorand=0.54 hirand=0.63 region_label=7 sample=kick2_OH_F_7.wav
+<region> lorand=0.63 hirand=0.72 region_label=8 sample=kick2_OH_F_8.wav
+<region> lorand=0.72 hirand=0.81 region_label=9 sample=kick2_OH_F_9.wav
+<region> lorand=0.81 hirand=0.90 region_label=10 sample=kick2_OH_F_10.wav
+<region> lorand=0.90 hirand=1.00 region_label=11 sample=kick2_OH_F_11.wav
+
+<group> 
+lovel=80 
+hivel=127
+
+<region> lorand=0.00 hirand=0.08 region_label=1 sample=kick2_OH_FF_1.wav
+<region> lorand=0.08 hirand=0.16 region_label=2 sample=kick2_OH_FF_2.wav
+<region> lorand=0.16 hirand=0.24 region_label=3 sample=kick2_OH_FF_3.wav
+<region> lorand=0.24 hirand=0.32 region_label=4 sample=kick2_OH_FF_4.wav
+<region> lorand=0.32 hirand=0.40 region_label=5 sample=kick2_OH_FF_5.wav
+<region> lorand=0.40 hirand=0.48 region_label=6 sample=kick2_OH_FF_6.wav
+<region> lorand=0.48 hirand=0.56 region_label=7 sample=kick2_OH_FF_7.wav
+<region> lorand=0.56 hirand=0.64 region_label=8 sample=kick2_OH_FF_8.wav
+<region> lorand=0.64 hirand=0.72 region_label=9 sample=kick2_OH_FF_9.wav
+<region> lorand=0.72 hirand=0.80 region_label=10 sample=kick2_OH_FF_10.wav
+<region> lorand=0.80 hirand=0.90 region_label=11 sample=kick2_OH_FF_11.wav
+<region> lorand=0.90 hirand=1.00 region_label=12 sample=kick2_OH_FF_12.wav
